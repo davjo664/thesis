@@ -21,3 +21,4 @@ const props = {
 // store.subscribe(() => {
   ReactDOM.render(<App {...props} />, document.getElementById('root'));
 // })
+
