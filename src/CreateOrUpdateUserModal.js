@@ -30,7 +30,7 @@ import $ from 'jquery'
 
 import {firstNameFirst, lastNameFirst, nameParts} from './user_utils'
 import InstuiModal, {ModalBody, ModalFooter} from './InstuiModal'
-import TimeZoneSelect from './TimeZoneSelect'
+import TimeZoneSelect from './components/TimeZoneSelect'
 
 //
 // Copyright (C) 2012 - present Instructure, Inc.
