@@ -1,12 +1,23 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
 import App from './App';
-import * as serviceWorker from './serviceWorker';
+import configureStore from './store/configureStore'
+import initialState from './store/initialState'
+import './index.css'
+import '@instructure/canvas-theme'
 
-ReactDOM.render(<App />, document.getElementById('root'));
+// Note. Only the UsersPane/Tab is using a redux store. The courses tab is
+// still using the old store model. That is why this might seem kind of weird.
+const store = configureStore(initialState)
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+const props = {
+  permissions: window.ENV.PERMISSIONS,
+  rootAccountId: window.ENV.ROOT_ACCOUNT_ID,
+  accountId: window.ENV.ACCOUNT_ID,
+  roles: window.ENV.ROLES,
+  store
+}
+
+// store.subscribe(() => {
+  ReactDOM.render(<App {...props} />, document.getElementById('root'));
+// })
