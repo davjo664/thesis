@@ -24,20 +24,13 @@ import UsersPane from './components/UsersPane'
 
 const stores = [ UsersStore ]
 
-export default class AccountCourseUserSearch extends React.Component {
+export default class UsersSearch extends React.Component {
   static propTypes = {
     accountId: string.isRequired,
     rootAccountId: string.isRequired,
     permissions: shape({
       analytics: bool.isRequired
     }).isRequired
-  }
-
-  componentWillMount() {
-    const {accountId, rootAccountId} = this.props
-    stores.forEach(s => {
-      s.reset({accountId, rootAccountId})
-    })
   }
 
   updateQueryParams(params) {

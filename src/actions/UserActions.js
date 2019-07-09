@@ -68,7 +68,6 @@ export default {
       ) {
         dispatch(this.loadingUsers())
         store.load(searchFilter).then((response, _, xhr) => {
-          console.log("THEN");
           dispatch(this.gotUserList(response, xhr))
         })
       } else {
