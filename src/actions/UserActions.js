@@ -58,15 +58,14 @@ export default {
     }
   },
 
-  applySearchFilter(minSearchLength, store = UsersStore) {
-    return (dispatch, getState) => {
-      const searchFilter = getState().userList.searchFilter
+  applySearchFilter(minSearchLength, searchFilter, store = UsersStore) {
+    return (dispatch) => {
       if (
         !searchFilter ||
         searchFilter.search_term.length >= minSearchLength ||
         searchFilter.search_term === ''
       ) {
-        dispatch(this.loadingUsers())
+        dispatch(this.loadingUsers());
         store.load(searchFilter).then((response, _, xhr) => {
           dispatch(this.gotUserList(response, xhr))
         })
