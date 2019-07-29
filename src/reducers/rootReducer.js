@@ -16,7 +16,6 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import {combineReducers} from 'redux'
 import parseLinkHeader from 'parse-link-header'
 import initialState from '../store/initialState'
 
@@ -122,6 +121,4 @@ const makeReducer = handlerList => (state = initialState, action) => {
   return state
 }
 
-export default combineReducers({
-  userList: makeReducer(userListHandlers)
-})
+export default makeReducer(userListHandlers);
