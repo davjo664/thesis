@@ -34,12 +34,8 @@ const SearchMessage = props => {
   const [state, setState] = useState({});
 
   useEffect(()=>{
-    if (!props.collection.loading) {
-      const newState = {}
-      if (state.pageBecomingCurrent) newState.pageBecomingCurrent = null
-      setState(newState)
-    }
-  }, [ props.collection ])
+    props.setPage(state.pageBecomingCurrent)
+  }, [ state.pageBecomingCurrent ])
 
   const defaultProps = {
     getLiveAlertRegion() {
@@ -48,7 +44,7 @@ const SearchMessage = props => {
   }
 
   const handleSetPage = page => {
-    setState({pageBecomingCurrent: page}, () => props.setPage(page))
+    setState({...state, pageBecomingCurrent: page})
   }
 
   const isLastPageUnknown = () => {
@@ -80,7 +76,7 @@ const SearchMessage = props => {
         current={isCurrent}
         aria-label={`Page ${pageNumber}`}
       >
-        {isCurrent && state.pageBecomingCurrent ? (
+        {isCurrent && props.collection.loading ? (
           <Spinner size="x-small" title={'Loading...'} />
         ) : (
           pageNumber

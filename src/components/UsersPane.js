@@ -70,7 +70,6 @@ const UsersPane = props => {
 
   const handleSetPage = page => {
     dispatch(UserActions.updateSearchFilter({page}))
-    handleApplyingSearchFilter()
   }
 
   const {links, accountId, users, isLoading, errors, searchFilter} = state
