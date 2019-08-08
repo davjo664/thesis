@@ -26,13 +26,10 @@ import SearchMessage from './SearchMessage'
 import UserActions from '../actions/UserActions'
 import UsersPaneContext from '../context/userspane-context'
 import rootReducer from '../reducers/rootReducer';
-import initialState from '../store/initialState';
 
-const MIN_SEARCH_LENGTH = 3
-export const SEARCH_DEBOUNCE_TIME = 750
+export const MIN_SEARCH_LENGTH = 3
 
 const UsersPane = props => {
-  const [state, dispatch] = useReducer(rootReducer, initialState);
   const [srMessageDisplayed, setSrMessageDisplayed] = useState(false);
 
   const [searchFilter, setSearchFilter] = useState({search_term: ''});
@@ -53,7 +50,7 @@ const UsersPane = props => {
 
   const handleUpdateSearchFilter = filter => {
     setSearchFilter({...searchFilter, ...filter, page: null});
-    if ( filter && filter.search_term.length < MIN_SEARCH_LENGTH ) {
+    if ( filter && filter.search_term && filter.search_term.length < MIN_SEARCH_LENGTH  ) {
       setSearchTermTooShort(true);
     } else {
       setSearchTermTooShort(false);

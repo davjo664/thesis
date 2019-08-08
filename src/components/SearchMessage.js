@@ -24,24 +24,8 @@ import {array, func, string, shape, oneOf} from 'prop-types'
 import View from '@instructure/ui-layout/lib/components/View'
 import { useQuery } from '@apollo/react-hooks';
 import { gql } from 'apollo-boost';
-const MIN_SEARCH_LENGTH = 3
-
-const USERS_QUERY = gql`
-    query UsersQuery($page: Int!, $search_term: String!) {
-      users(page: $page, search_term: $search_term) {
-        users {
-          sortable_name,
-          short_name,
-          email,
-          time_zone
-        },
-        links {
-          current,
-          next
-        }
-      }
-    }
-`;
+import { USERS_QUERY } from '../graphql/queries'
+import { MIN_SEARCH_LENGTH } from './UsersPane'
 
 const linkPropType = shape({
   url: string.isRequired,
@@ -57,10 +41,17 @@ const SearchMessage = props => {
   }, [ state.pageBecomingCurrent ])
 
   const { loading, error, data } = useQuery(USERS_QUERY, 
-    { variables: { page: props.searchFilter.page ? props.searchFilter.page : 1, search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : ""} }
+    { variables: { 
+      page: props.searchFilter.page ? props.searchFilter.page : 1, 
+      search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : "",
+      order: props.searchFilter.order,
+      sort: props.searchFilter.sort,
+      role_filter_id: props.searchFilter.role_filter_id
+    } 
+    }
   );
 
-  if (loading || !data.users.users.length) return <p></p>;
+  if (loading || !data.users || !data.users.users.length) return <p></p>;
 
   const defaultProps = {
     getLiveAlertRegion() {
@@ -73,7 +64,7 @@ const SearchMessage = props => {
   }
 
   const isLastPageUnknown = () => {
-    return !data.users.links.last
+    return data.users.links.next
   }
 
   const currentPage = () => {

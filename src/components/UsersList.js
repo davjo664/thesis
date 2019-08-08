@@ -23,33 +23,23 @@ import {arrayOf, string, object, func} from 'prop-types'
 import UsersListRow from './UsersListRow'
 import UsersListHeader from './UsersListHeader'
 import { useQuery } from '@apollo/react-hooks';
-import { gql } from 'apollo-boost';
 import Billboard from '@instructure/ui-billboard/lib/components/Billboard'
 import Spinner from '@instructure/ui-elements/lib/components/Spinner'
 import View from '@instructure/ui-layout/lib/components/View'
 import EmptyDesert from '../EmptyDesert'
-const MIN_SEARCH_LENGTH = 3
-
-const USERS_QUERY = gql`
-    query UsersQuery($page: Int!, $search_term: String!) {
-      users(page: $page, search_term: $search_term) {
-        users {
-          sortable_name,
-          short_name,
-          email,
-          time_zone
-        },
-        links {
-          current,
-          next
-        }
-      }
-    }
-`;
+import { USERS_QUERY } from '../graphql/queries'
+import { MIN_SEARCH_LENGTH } from './UsersPane'
 
 const UsersList = props => {
+
   const { loading, error, data } = useQuery(USERS_QUERY, 
-    { variables: { page: props.searchFilter.page ? props.searchFilter.page : 1, search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : ""} }
+    { variables: { 
+      page: props.searchFilter.page ? props.searchFilter.page : 1, 
+      search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : "",
+      order: props.searchFilter.order,
+      sort: props.searchFilter.sort,
+      role_filter_id: props.searchFilter.role_filter_id
+    } }
   );
 
   if (loading) {
