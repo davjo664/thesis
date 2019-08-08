@@ -16,37 +16,40 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import {string, bool, shape} from 'prop-types'
 import {stringify} from 'qs'
-import UsersStore from './store/UsersStore'
 import UsersPane from './components/UsersPane'
+import UsersSearchContext from './context/userssearch-context'
 
-const stores = [ UsersStore ]
+const UsersSearch = props => {
+  const [state, setState] = useState({
+    permissions: window.ENV.PERMISSIONS,
+    rootAccountId: window.ENV.ROOT_ACCOUNT_ID,
+    accountId: window.ENV.ACCOUNT_ID,
+    roles: window.ENV.ROLES
+  }) 
 
-export default class UsersSearch extends React.Component {
-  static propTypes = {
-    accountId: string.isRequired,
-    rootAccountId: string.isRequired,
-    permissions: shape({
-      analytics: bool.isRequired
-    }).isRequired
-  }
-
-  updateQueryParams(params) {
+  const updateQueryParams = params => {
     const query = stringify(params)
     window.history.replaceState(null, null, `?${query}`)
   }
 
-  render() {
-     return (
+  return (
+    <UsersSearchContext.Provider value={{
+      permissions: state.permissions,
+      rootAccountId: state.rootAccountId,
+      accountId: state.accountId,
+      roles: state.roles
+    }}>
       <UsersPane
         {...{
-          ...this.props,
-          onUpdateQueryParams: this.updateQueryParams,
+          onUpdateQueryParams: updateQueryParams,
           queryParams: null
         }}
       />
-    )
-  }
+    </UsersSearchContext.Provider>
+  )
 }
+
+export default UsersSearch;

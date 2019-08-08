@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React from 'react'
+import React, { useContext } from 'react'
 import {string, func, shape, arrayOf} from 'prop-types'
 import IconGroupLine from '@instructure/ui-icons/lib/Line/IconGroup'
 import IconMoreLine from '@instructure/ui-icons/lib/Line/IconMore'
@@ -33,6 +33,8 @@ import Select from '@instructure/ui-core/lib/components/Select'
 import TextInput from '@instructure/ui-forms/lib/components/TextInput'
 
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
+import UsersSearchContext from '../context/userssearch-context'
+import UsersPaneContext from '../context/userspane-context'
 
 function preventDefault (fn) {
   return function (event) {
@@ -42,6 +44,9 @@ function preventDefault (fn) {
 }
 
 export default function UsersToolbar(props) {
+  const usersSearchContext = useContext(UsersSearchContext);
+  const usersPaneContext = useContext(UsersPaneContext);
+  
   const placeholder = 'Search people...'
   return (
     <form onSubmit={preventDefault(props.onApplyFilters)}>
@@ -50,12 +55,12 @@ export default function UsersToolbar(props) {
           <Select
             label={<ScreenReaderContent>{'Filter by user type'}</ScreenReaderContent>}
             value={props.role_filter_id}
-            onChange={e => props.onUpdateFilters({role_filter_id: e.target.value})}
+            onChange={e => usersPaneContext.onUpdateFilters({role_filter_id: e.target.value})}
           >
             <option key="all" value="">
               {'All Roles'}
             </option>
-            {props.roles.map(role => (
+            {usersSearchContext.roles.map(role => (
               <option key={role.id} value={role.id}>
                 {role.label}
               </option>
@@ -68,7 +73,7 @@ export default function UsersToolbar(props) {
           value={props.search_term}
           label={<ScreenReaderContent>{placeholder}</ScreenReaderContent>}
           placeholder={placeholder}
-          onChange={e => props.onUpdateFilters({search_term: e.target.value})}
+          onChange={e => usersPaneContext.onUpdateFilters({search_term: e.target.value})}
           onKeyUp={e => {
             if (e.key === 'Enter') {
               props.toggleSRMessage(true)
@@ -85,7 +90,7 @@ export default function UsersToolbar(props) {
           {window.ENV.PERMISSIONS.can_create_users && (
             <CreateOrUpdateUserModal
               createOrUpdate="create"
-              url={`/accounts/${props.accountId}/users`}
+              url={`/accounts/${usersSearchContext.accountId}/users`}
               afterSave={props.onApplyFilters} // update displayed results in case new user should appear
             >
               <Button aria-label={'Add people'}>
@@ -94,7 +99,7 @@ export default function UsersToolbar(props) {
               </Button>
             </CreateOrUpdateUserModal>
           )}{' '}
-          {renderKabobMenu(props.accountId)}
+          {renderKabobMenu(usersSearchContext.accountId)}
         </GridCol>
       </FormFieldGroup>
     </form>
@@ -131,25 +136,15 @@ function renderKabobMenu(accountId) {
 
 UsersToolbar.propTypes = {
   toggleSRMessage: func.isRequired,
-  onUpdateFilters: func.isRequired,
   onApplyFilters: func.isRequired,
   search_term: string,
   role_filter_id: string,
-  errors: shape({search_term: string}),
-  accountId: string,
-  roles: arrayOf(
-    shape({
-      id: string.isRequired,
-      label: string.isRequired
-    })
-  ).isRequired
+  errors: shape({search_term: string})
 }
 
 UsersToolbar.defaultProps = {
   search_term: '',
   role_filter_id: '',
   errors: {},
-  accountId: '',
-  handlers: {},
-  roles: []
+  handlers: {}
 }
