@@ -22,8 +22,55 @@ import React, { memo } from 'react'
 import {arrayOf, string, object, func} from 'prop-types'
 import UsersListRow from './UsersListRow'
 import UsersListHeader from './UsersListHeader'
+import { useQuery } from '@apollo/react-hooks';
+import { gql } from 'apollo-boost';
+import Billboard from '@instructure/ui-billboard/lib/components/Billboard'
+import Spinner from '@instructure/ui-elements/lib/components/Spinner'
+import View from '@instructure/ui-layout/lib/components/View'
+import EmptyDesert from '../EmptyDesert'
+const MIN_SEARCH_LENGTH = 3
+
+const USERS_QUERY = gql`
+    query UsersQuery($page: Int!, $search_term: String!) {
+      users(page: $page, search_term: $search_term) {
+        users {
+          sortable_name,
+          short_name,
+          email,
+          time_zone
+        },
+        links {
+          current,
+          next
+        }
+      }
+    }
+`;
 
 const UsersList = props => {
+  const { loading, error, data } = useQuery(USERS_QUERY, 
+    { variables: { page: props.searchFilter.page ? props.searchFilter.page : 1, search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : ""} }
+  );
+
+  if (loading) {
+    return (
+      <View display="block" textAlign="center" padding="medium">
+        <Spinner size="medium" title={'Loading...'} />
+      </View>
+    )
+  }
+  if (error) {
+    console.log(error);
+    console.log(error.message)
+    console.log(error.graphQLErrors);
+    return <p>error :(</p>;
+  }
+  if (!data.users.users.length) {
+    return (
+      <Billboard size="large" heading={props.noneFoundMessage} headingAs="h2" hero={<EmptyDesert />} />
+    )
+  }
+
   return (
     <Table
       margin="small 0"
@@ -65,7 +112,8 @@ const UsersList = props => {
         </tr>
       </thead>
       <tbody data-automation="users list">
-        {props.users.map(user => (
+        {/* use apollo client here and filter on user name as well as page nr. Create the query on the server to accept filtering from /users rest api. */}
+        {data.users.users.map(user => (
           <UsersListRow
             key={user.id}
             user={user}
@@ -78,7 +126,8 @@ const UsersList = props => {
 
 UsersList.propTypes = {
   users: arrayOf(object).isRequired,
-  searchFilter: object.isRequired
+  searchFilter: object.isRequired,
+  noneFoundMessage: string.isRequired
 }
 
 export default memo(

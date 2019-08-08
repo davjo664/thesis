@@ -22,7 +22,26 @@ import Pagination, {PaginationButton} from '@instructure/ui-pagination/lib/compo
 import Spinner from '@instructure/ui-elements/lib/components/Spinner'
 import {array, func, string, shape, oneOf} from 'prop-types'
 import View from '@instructure/ui-layout/lib/components/View'
-import EmptyDesert from '../EmptyDesert'
+import { useQuery } from '@apollo/react-hooks';
+import { gql } from 'apollo-boost';
+const MIN_SEARCH_LENGTH = 3
+
+const USERS_QUERY = gql`
+    query UsersQuery($page: Int!, $search_term: String!) {
+      users(page: $page, search_term: $search_term) {
+        users {
+          sortable_name,
+          short_name,
+          email,
+          time_zone
+        },
+        links {
+          current,
+          next
+        }
+      }
+    }
+`;
 
 const linkPropType = shape({
   url: string.isRequired,
@@ -37,6 +56,12 @@ const SearchMessage = props => {
     props.setPage(state.pageBecomingCurrent)
   }, [ state.pageBecomingCurrent ])
 
+  const { loading, error, data } = useQuery(USERS_QUERY, 
+    { variables: { page: props.searchFilter.page ? props.searchFilter.page : 1, search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : ""} }
+  );
+
+  if (loading || !data.users.users.length) return <p></p>;
+
   const defaultProps = {
     getLiveAlertRegion() {
       return document.getElementById('flash_screenreader_holder')
@@ -48,27 +73,22 @@ const SearchMessage = props => {
   }
 
   const isLastPageUnknown = () => {
-    return !props.collection.links.last
+    return !data.users.links.last
   }
 
   const currentPage = () => {
-    return state.pageBecomingCurrent || Number(props.collection.links.current.page)
+    return Number(data.users.links.current)
   }
 
   const lastKnownPageNumber = () => {
-    const link =
-      props.collection.links &&
-      (props.collection.links.last || props.collection.links.next)
-
+    const link = data.users.links && data.users.links.next
     if (!link) return 0
-    return Number(link.page)
+    return Number(link)
   }
 
   const renderPaginationButton = (pageIndex) => {
     const pageNumber = pageIndex + 1
-    const isCurrent = state.pageBecomingCurrent
-      ? pageNumber === state.pageBecomingCurrent
-      : pageNumber === currentPage()
+    const isCurrent = pageNumber === currentPage()
     return (
       <PaginationButton
         key={pageNumber}
@@ -76,35 +96,15 @@ const SearchMessage = props => {
         current={isCurrent}
         aria-label={`Page ${pageNumber}`}
       >
-        {isCurrent && props.collection.loading ? (
-          <Spinner size="x-small" title={'Loading...'} />
-        ) : (
-          pageNumber
-        )}
+        {pageNumber}
       </PaginationButton>
     )
   }
 
-  const {collection, noneFoundMessage} = props
+  const {collection} = props
   const errorLoadingMessage = 'There was an error with your query; please try a different search'
 
-  if (collection.error) {
-    return (
-      <div className="text-center pad-box">
-        <div className="alert alert-error">{errorLoadingMessage}</div>
-      </div>
-    )
-  } else if (collection.loading) {
-    return (
-      <View display="block" textAlign="center" padding="medium">
-        <Spinner size="medium" title={'Loading...'} />
-      </View>
-    )
-  } else if (!collection.data.length) {
-    return (
-      <Billboard size="large" heading={noneFoundMessage} headingAs="h2" hero={<EmptyDesert />} />
-    )
-  } else if (collection.links) {
+  if (data.users.links) {
     const lastPageNumber = lastKnownPageNumber()
     const lastIndex = lastPageNumber - 1
     const paginationButtons = Array.from(Array(lastPageNumber))
@@ -142,12 +142,7 @@ const SearchMessage = props => {
 }
 
 SearchMessage.propTypes = {
-  collection: shape({
-    data: array.isRequired,
-    links: shape({current: linkPropType})
-  }).isRequired,
   setPage: func.isRequired,
-  noneFoundMessage: string.isRequired,
   getLiveAlertRegion: func,
   dataType: oneOf(['Course', 'User']).isRequired
 }

@@ -106,12 +106,6 @@ const userListHandlers = {
         search_term: action.errors.termTooShort
       }
     }
-  },
-  LOADING_USERS(state, _action) {
-    return {
-      ...state,
-      isLoading: true
-    }
   }
 }
 

@@ -49,7 +49,7 @@ export default function UsersToolbar(props) {
   
   const placeholder = 'Search people...'
   return (
-    <form onSubmit={preventDefault(props.onApplyFilters)}>
+    <form onSubmit={preventDefault(usersPaneContext.onUpdateFilters)}>
       <FormFieldGroup layout="columns" description="">
         <GridCol width="auto">
           <Select
@@ -91,7 +91,7 @@ export default function UsersToolbar(props) {
             <CreateOrUpdateUserModal
               createOrUpdate="create"
               url={`/accounts/${usersSearchContext.accountId}/users`}
-              afterSave={props.onApplyFilters} // update displayed results in case new user should appear
+              afterSave={usersPaneContext.onUpdateFilters} // update displayed results in case new user should appear
             >
               <Button aria-label={'Add people'}>
                 <IconPlusLine />
@@ -136,7 +136,6 @@ function renderKabobMenu(accountId) {
 
 UsersToolbar.propTypes = {
   toggleSRMessage: func.isRequired,
-  onApplyFilters: func.isRequired,
   search_term: string,
   role_filter_id: string,
   errors: shape({search_term: string})

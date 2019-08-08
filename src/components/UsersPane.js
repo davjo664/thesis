@@ -35,44 +35,39 @@ const UsersPane = props => {
   const [state, dispatch] = useReducer(rootReducer, initialState);
   const [srMessageDisplayed, setSrMessageDisplayed] = useState(false);
 
+  const [searchFilter, setSearchFilter] = useState({search_term: ''});
+  const [searchTermTooShort, setSearchTermTooShort] = useState(false);
+
   useEffect(() => {
     const {search_term, role_filter_id} = {...UsersToolbar.defaultProps, ...props.queryParams}
-    dispatch(UserActions.updateSearchFilter({search_term, role_filter_id}));
-    UserActions.applySearchFilter(MIN_SEARCH_LENGTH, state.searchFilter)(dispatch);
+    setSearchFilter({search_term, role_filter_id});
   }, [])
 
   useEffect(() => {
-    debouncedDispatchApplySearchFilter()
-  }, [ state.searchFilter ])
-
-  const handleApplyingSearchFilter = () => {
-    UserActions.applySearchFilter(MIN_SEARCH_LENGTH, state.searchFilter)(dispatch)
     updateQueryString()
-  }
+  }, [ searchFilter ])
 
   const updateQueryString = () => {
-    const searchFilter = state.searchFilter
     props.onUpdateQueryParams(searchFilter)
   }
 
-  const debouncedDispatchApplySearchFilter = _.debounce(
-    handleApplyingSearchFilter,
-    SEARCH_DEBOUNCE_TIME
-  )
-
-  const handleUpdateSearchFilter = searchFilter => {
-    dispatch(UserActions.updateSearchFilter({page: null, ...searchFilter}));
+  const handleUpdateSearchFilter = filter => {
+    setSearchFilter({...searchFilter, ...filter, page: null});
+    if ( filter && filter.search_term.length < MIN_SEARCH_LENGTH ) {
+      setSearchTermTooShort(true);
+    } else {
+      setSearchTermTooShort(false);
+    }
   }
 
   const handleSubmitEditUserForm = (attributes, id) => {
-    handleApplyingSearchFilter()
+    // handleApplyingSearchFilter()
   }
 
   const handleSetPage = page => {
-    dispatch(UserActions.updateSearchFilter({page}))
+    setSearchFilter({...searchFilter, page });
   }
 
-  const {links, accountId, users, isLoading, errors, searchFilter} = state
   return (
     <div>
       <ScreenReaderContent>
@@ -84,26 +79,22 @@ const UsersPane = props => {
       }}>
       {
         <UsersToolbar
-          onApplyFilters={handleApplyingSearchFilter}
-          errors={errors}
+          errors={searchTermTooShort ? {search_term: "Search message too short"} : {}}
           {...searchFilter}
           toggleSRMessage={(show = false) => {
             setSrMessageDisplayed(show);
           }}
         />
       }
-
-      {!_.isEmpty(users) &&
-        !isLoading && (
-          <UsersList
-            searchFilter={state.searchFilter}
-            users={users}
-          />
-        )}
+      { 
+        <UsersList
+          searchFilter={searchFilter}
+          noneFoundMessage={'No users found'}
+        />
+      }
       <SearchMessage
-        collection={{data: users, loading: isLoading, links}}
+        searchFilter={searchFilter}
         setPage={handleSetPage}
-        noneFoundMessage={'No users found'}
         dataType="User"
       />
       </UsersPaneContext.Provider>

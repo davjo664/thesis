@@ -21,6 +21,9 @@ import {string, bool, shape} from 'prop-types'
 import {stringify} from 'qs'
 import UsersPane from './components/UsersPane'
 import UsersSearchContext from './context/userssearch-context'
+import ApolloClient from 'apollo-boost';
+import { gql } from "apollo-boost";
+import { ApolloProvider } from '@apollo/react-hooks';
 
 const UsersSearch = props => {
   const [state, setState] = useState({
@@ -35,20 +38,26 @@ const UsersSearch = props => {
     window.history.replaceState(null, null, `?${query}`)
   }
 
+  const client = new ApolloClient({
+    uri: 'http://localhost:3001/graphql',
+  });
+
   return (
-    <UsersSearchContext.Provider value={{
-      permissions: state.permissions,
-      rootAccountId: state.rootAccountId,
-      accountId: state.accountId,
-      roles: state.roles
-    }}>
-      <UsersPane
-        {...{
-          onUpdateQueryParams: updateQueryParams,
-          queryParams: null
-        }}
-      />
-    </UsersSearchContext.Provider>
+    <ApolloProvider client={client}>
+      <UsersSearchContext.Provider value={{
+        permissions: state.permissions,
+        rootAccountId: state.rootAccountId,
+        accountId: state.accountId,
+        roles: state.roles
+      }}>
+        <UsersPane
+          {...{
+            onUpdateQueryParams: updateQueryParams,
+            queryParams: null
+          }}
+        />
+      </UsersSearchContext.Provider>
+    </ApolloProvider>
   )
 }
 

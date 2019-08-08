@@ -17,10 +17,7 @@
  */
 
 export default {
-  users: [],
-  isLoading: true,
   errors: {search_term: ''},
-  next: undefined,
   searchFilter: {search_term: ''},
   permissions: window.ENV.PERMISSIONS,
   accountId: window.ENV.ACCOUNT_ID,
