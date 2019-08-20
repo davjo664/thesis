@@ -15,7 +15,8 @@ export const USERS_QUERY = gql`
         },
         links {
           current,
-          next
+          next,
+          last
         }
       }
     }

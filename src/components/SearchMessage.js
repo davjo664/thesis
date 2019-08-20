@@ -64,7 +64,7 @@ const SearchMessage = props => {
   }
 
   const isLastPageUnknown = () => {
-    return data.users.links.next
+    return !data.users.links.last
   }
 
   const currentPage = () => {
@@ -72,7 +72,7 @@ const SearchMessage = props => {
   }
 
   const lastKnownPageNumber = () => {
-    const link = data.users.links && data.users.links.next
+    const link = data.users.links.last ? data.users.links.last : data.users.links.next
     if (!link) return 0
     return Number(link)
   }
