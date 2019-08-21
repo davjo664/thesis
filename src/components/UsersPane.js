@@ -16,24 +16,28 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useReducer, useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {shape, func, string} from 'prop-types'
-import _ from 'underscore'
 import ScreenReaderContent from '@instructure/ui-a11y/lib/components/ScreenReaderContent'
 import UsersList from './UsersList'
 import UsersToolbar from './UsersToolbar'
 import SearchMessage from './SearchMessage'
-import UserActions from '../actions/UserActions'
 import UsersPaneContext from '../context/userspane-context'
-import rootReducer from '../reducers/rootReducer';
+import { useQuery } from '@apollo/react-hooks';
+import { USERS_QUERY } from '../graphql/queries';
+import Spinner from '@instructure/ui-elements/lib/components/Spinner';
+import View from '@instructure/ui-layout/lib/components/View';
 
 export const MIN_SEARCH_LENGTH = 3
 
 const UsersPane = props => {
   const [srMessageDisplayed, setSrMessageDisplayed] = useState(false);
-
   const [searchFilter, setSearchFilter] = useState({search_term: ''});
   const [searchTermTooShort, setSearchTermTooShort] = useState(false);
+
+  const updateQueryString = () => {
+    props.onUpdateQueryParams(searchFilter)
+  }
 
   useEffect(() => {
     const {search_term, role_filter_id} = {...UsersToolbar.defaultProps, ...props.queryParams}
@@ -44,10 +48,19 @@ const UsersPane = props => {
     updateQueryString()
   }, [ searchFilter ])
 
-  const updateQueryString = () => {
-    props.onUpdateQueryParams(searchFilter)
-  }
+  const { loading, error, data, refetch } = useQuery(USERS_QUERY, 
+    { variables: { 
+      page: searchFilter.page ? searchFilter.page : 1, 
+      search_term: searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? searchFilter.search_term : "",
+      order: searchFilter.order,
+      sort: searchFilter.sort,
+      role_filter_id: searchFilter.role_filter_id
+    } }
+  );
 
+  if (error) {
+    return <p>error :(</p>;
+  }
   const handleUpdateSearchFilter = filter => {
     setSearchFilter({...searchFilter, ...filter, page: null});
     if ( filter && filter.search_term && filter.search_term.length < MIN_SEARCH_LENGTH  ) {
@@ -57,8 +70,8 @@ const UsersPane = props => {
     }
   }
 
-  const handleSubmitEditUserForm = (attributes, id) => {
-    // handleApplyingSearchFilter()
+  const handleSubmitUserForm = (attributes, id) => {
+    refetch();
   }
 
   const handleSetPage = page => {
@@ -71,7 +84,7 @@ const UsersPane = props => {
         <h1>{'People'}</h1>
       </ScreenReaderContent>
       <UsersPaneContext.Provider value={{
-        handleSubmitEditUserForm: handleSubmitEditUserForm,
+        handleSubmitUserForm: handleSubmitUserForm,
         onUpdateFilters: handleUpdateSearchFilter
       }}>
       {
@@ -83,17 +96,23 @@ const UsersPane = props => {
           }}
         />
       }
-      { 
-        <UsersList
+      {loading ?
+        <View display="block" textAlign="center" padding="medium">
+          <Spinner size="medium" title={'Loading...'} />
+        </View> : 
+        <><UsersList
+          users={data.users.users}
           searchFilter={searchFilter}
           noneFoundMessage={'No users found'}
         />
+        <SearchMessage
+          users={data.users.users}
+          links={data.users.links}
+          searchFilter={searchFilter}
+          setPage={handleSetPage}
+          dataType="User"
+        /></>
       }
-      <SearchMessage
-        searchFilter={searchFilter}
-        setPage={handleSetPage}
-        dataType="User"
-      />
       </UsersPaneContext.Provider>
     </div>
   )

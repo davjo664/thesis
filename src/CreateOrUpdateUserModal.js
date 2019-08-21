@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useContext } from 'react'
 import {bool, func, shape, string, element, oneOf} from 'prop-types'
 import Avatar from '@instructure/ui-elements/lib/components/Avatar'
 import Button from '@instructure/ui-buttons/lib/components/Button'
@@ -25,13 +25,15 @@ import FormFieldGroup from '@instructure/ui-form-field/lib/components/FormFieldG
 import TextInput from '@instructure/ui-forms/lib/components/TextInput'
 import update from 'immutability-helper'
 import {get, isEmpty} from 'lodash'
-import axios from 'axios'
 import $ from 'jquery'
 
 import {firstNameFirst, lastNameFirst, nameParts} from './user_utils'
 import InstuiModal, {ModalBody, ModalFooter} from './InstuiModal'
 import TimeZoneSelect from './components/TimeZoneSelect'
 
+import { useMutation } from '@apollo/react-hooks';
+import { CREATE_USER, UPDATE_USER } from './graphql/mutations';
+import UsersPaneContext from './context/userspane-context'
 //
 // Copyright (C) 2012 - present Instructure, Inc.
 //
@@ -133,6 +135,9 @@ function preventDefault (fn) {
 
 const CreateOrUpdateUserModal = props => {
   const [state, setState] = useState(initialState);
+  const [createUser, { data: createUserData, error: createUserError }] = useMutation(CREATE_USER);
+  const [updateUser, { data: updateUserData, error: updateUserError }] = useMutation(UPDATE_USER);
+  const usersPaneContext = useContext(UsersPaneContext);
 
   useEffect(() => {
     if (props.createOrUpdate === 'update') {
@@ -146,6 +151,19 @@ const CreateOrUpdateUserModal = props => {
       setState(update(state, {data: {user: {$set: userDataFromProps}}}))
     }
   }, []);
+
+  useEffect(() => {
+    if (createUserData || updateUserData) {
+      setState({...initialState})
+      usersPaneContext.handleSubmitUserForm();
+    }
+  }, [createUserData, updateUserData]);
+
+  if (createUserError || updateUserError) {
+    const errors = createUserError ? createUserError : updateUserError;
+    $.flashError('Something went wrong saving user details.')
+    setState(...state, {errors})
+  }
 
   const onChange = (field, value) => {
     setState(prevState => {
@@ -176,27 +194,20 @@ const CreateOrUpdateUserModal = props => {
   const onSubmit = () => {
     if (!isEmpty(state.errors)) return
     const method = {create: 'POST', update: 'PUT'}[props.createOrUpdate]
-    axios({url: props.url, method, data: state.data}).then(
-      response => {
-        const getUserObj = o => (o.user ? getUserObj(o.user) : o)
-        const user = getUserObj(response.data)
-        const userName = user.name
-        const wrapper = `<a href='/users/${user.id}'>$1</a>`
-        $.flashMessage(
-          response.data.message_sent
-            ? `*${userName}* saved successfully! They should receive an email confirmation shortly.` :
-            `*${userName}* saved successfully!`
-        )
-
-        setState({...initialState})
-        if (props.afterSave) props.afterSave(response)
-      },
-      ({response}) => {
-        const errors = response.data.errors
-        $.flashError('Something went wrong saving user details.')
-        setState({errors})
-      }
-    )
+    if (method === 'POST') {
+      createUser({
+        variables: {
+          input: state.data.user
+        }
+      });
+    } else {
+      updateUser({
+        variables: {
+          id: props.user.id,
+          input: state.data.user
+        }
+      });
+    }
   }
 
   const getInputFields = () => {
@@ -342,7 +353,6 @@ CreateOrUpdateUserModal.propTypes = {
   customized_login_handle_name: string,
   delegated_authentication: bool.isRequired,
   showSIS: bool.isRequired,
-  afterSave: func.isRequired
 }
 
 CreateOrUpdateUserModal.defaultProps = {

@@ -17,7 +17,7 @@
  */
 
 import React, { useContext } from 'react'
-import {string, func, shape} from 'prop-types'
+import {string, shape} from 'prop-types'
 import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMiniArrowUp from '@instructure/ui-icons/lib/Solid/IconMiniArrowUp'
 import IconMiniArrowDown from '@instructure/ui-icons/lib/Solid/IconMiniArrowDown'
@@ -32,7 +32,7 @@ function preventDefault (fn) {
   }
 }
 
-export default function UsersListHeader(props) {
+const UsersListHeader = (props) => {
   const {id, tipAsc, tipDesc, label} = props
   const {sort, order, search_term, role_filter_id} = props.searchFilter
   const newOrder = (sort === id && order === 'asc') || (!sort && id === 'username') ? 'desc' : 'asc'
@@ -55,6 +55,7 @@ export default function UsersListHeader(props) {
     </th>
   )
 }
+export default UsersListHeader;
 
 UsersListHeader.propTypes = {
   id: string.isRequired,

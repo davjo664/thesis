@@ -17,7 +17,6 @@
  */
 
 import React, { useContext } from 'react'
-import {string, func, shape, bool} from 'prop-types'
 import Button from '@instructure/ui-buttons/lib/components/Button'
 import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMasqueradeLine from '@instructure/ui-icons/lib/Line/IconMasquerade'
@@ -26,11 +25,9 @@ import IconEditLine from '@instructure/ui-icons/lib/Line/IconEdit'
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
 import UserLink from './UserLink'
 import UsersSearchContext from '../context/userssearch-context'
-import UsersPaneContext from '../context/userspane-context'
 
-export default function UsersListRow({user}) {
+const UsersListRow = ({user}) => {
   const usersSearchContext = useContext(UsersSearchContext);
-  const usersPaneContext = useContext(UsersPaneContext);
 
   return (
     <tr>
@@ -50,7 +47,7 @@ export default function UsersListRow({user}) {
       <td style={{whiteSpace: 'nowrap'}}>
         {usersSearchContext.permissions.can_masquerade && (
           <Tooltip tip={`Act as ${user.name}`}>
-            <Button variant="icon" size="small" disabled href={`/users/${user.id}/masquerade`}>
+            <Button variant="icon" size="small" href={`https://larande.test.instructure.com/users/${user.id}/masquerade`}>
               <IconMasqueradeLine title={`Act as ${user.name}`} />
             </Button>
           </Tooltip>
@@ -58,10 +55,9 @@ export default function UsersListRow({user}) {
         {usersSearchContext.permissions.can_message_users && (
           <Tooltip tip={`Send message to ${user.name}`}>
             <Button
-              disabled
               variant="icon"
               size="small"
-              href={`/conversations?user_name=${user.name}&user_id=${user.id}`}
+              href={`https://larande.test.instructure.com/conversations?user_name=${user.name}&user_id=${user.id}`}
             >
               <IconMessageLine title={`Send message to ${user.name}`} />
             </Button>
@@ -70,9 +66,8 @@ export default function UsersListRow({user}) {
         {usersSearchContext.permissions.can_edit_users && (
           <CreateOrUpdateUserModal
             createOrUpdate="update"
-            url={`/accounts/${usersSearchContext.accountId}/users/${user.id}`}
+            url={`https://larande.test.instructure.com/accounts/${usersSearchContext.accountId}/users/${user.id}`}
             user={user}
-            afterSave={usersPaneContext.handleSubmitEditUserForm}
           >
             <span>
               <Tooltip tip={`Edit ${user.name}`}>
@@ -87,6 +82,7 @@ export default function UsersListRow({user}) {
     </tr>
   )
 }
+export default UsersListRow;
 
 UsersListRow.propTypes = {
   user: CreateOrUpdateUserModal.propTypes.user.isRequired

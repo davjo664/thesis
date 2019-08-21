@@ -19,43 +19,14 @@
 import Table from '@instructure/ui-elements/lib/components/Table'
 import ScreenReaderContent from '@instructure/ui-a11y/lib/components/ScreenReaderContent'
 import React, { memo } from 'react'
-import {arrayOf, string, object, func} from 'prop-types'
+import {arrayOf, string, object} from 'prop-types'
 import UsersListRow from './UsersListRow'
 import UsersListHeader from './UsersListHeader'
-import { useQuery } from '@apollo/react-hooks';
 import Billboard from '@instructure/ui-billboard/lib/components/Billboard'
-import Spinner from '@instructure/ui-elements/lib/components/Spinner'
-import View from '@instructure/ui-layout/lib/components/View'
 import EmptyDesert from '../EmptyDesert'
-import { USERS_QUERY } from '../graphql/queries'
-import { MIN_SEARCH_LENGTH } from './UsersPane'
 
 const UsersList = props => {
-
-  const { loading, error, data } = useQuery(USERS_QUERY, 
-    { variables: { 
-      page: props.searchFilter.page ? props.searchFilter.page : 1, 
-      search_term: props.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? props.searchFilter.search_term : "",
-      order: props.searchFilter.order,
-      sort: props.searchFilter.sort,
-      role_filter_id: props.searchFilter.role_filter_id
-    } }
-  );
-
-  if (loading) {
-    return (
-      <View display="block" textAlign="center" padding="medium">
-        <Spinner size="medium" title={'Loading...'} />
-      </View>
-    )
-  }
-  if (error) {
-    console.log(error);
-    console.log(error.message)
-    console.log(error.graphQLErrors);
-    return <p>error :(</p>;
-  }
-  if (!data.users.users.length) {
+  if (!props.users.length) {
     return (
       <Billboard size="large" heading={props.noneFoundMessage} headingAs="h2" hero={<EmptyDesert />} />
     )
@@ -102,8 +73,7 @@ const UsersList = props => {
         </tr>
       </thead>
       <tbody data-automation="users list">
-        {/* use apollo client here and filter on user name as well as page nr. Create the query on the server to accept filtering from /users rest api. */}
-        {data.users.users.map(user => (
+        {props.users.map(user => (
           <UsersListRow
             key={user.id}
             user={user}

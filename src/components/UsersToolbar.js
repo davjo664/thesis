@@ -17,7 +17,7 @@
  */
 
 import React, { useContext } from 'react'
-import {string, func, shape, arrayOf} from 'prop-types'
+import {string, func, shape} from 'prop-types'
 import IconGroupLine from '@instructure/ui-icons/lib/Line/IconGroup'
 import IconMoreLine from '@instructure/ui-icons/lib/Line/IconMore'
 import IconPlusLine from '@instructure/ui-icons/lib/Line/IconPlus'
@@ -43,7 +43,7 @@ function preventDefault (fn) {
   }
 }
 
-export default function UsersToolbar(props) {
+const UsersToolbar = (props) => {
   const usersSearchContext = useContext(UsersSearchContext);
   const usersPaneContext = useContext(UsersPaneContext);
   
@@ -91,7 +91,6 @@ export default function UsersToolbar(props) {
             <CreateOrUpdateUserModal
               createOrUpdate="create"
               url={`/accounts/${usersSearchContext.accountId}/users`}
-              afterSave={usersPaneContext.onUpdateFilters} // update displayed results in case new user should appear
             >
               <Button aria-label={'Add people'}>
                 <IconPlusLine />
@@ -105,8 +104,9 @@ export default function UsersToolbar(props) {
     </form>
   )
 }
+export default UsersToolbar;
 
-function renderKabobMenu(accountId) {
+const renderKabobMenu = (accountId) => {
   const showAvatarItem = window.ENV.PERMISSIONS.can_manage_admin_users // see accounts_controller#avatars
   const showGroupsItem = window.ENV.PERMISSIONS.can_manage_groups // see groups_controller#context_index
   if (showAvatarItem || showGroupsItem) {
