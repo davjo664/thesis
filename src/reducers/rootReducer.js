@@ -20,53 +20,7 @@ import {combineReducers} from 'redux'
 import parseLinkHeader from 'parse-link-header'
 import initialState from '../store/initialState'
 
-const emailRegex = /([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})/i
-
-/**
- * Handles setting the editUserDialogOpen state
- * state - the redux state
- * action - the redux action
- * visibility - boolean that editUserDialogOpen should be set to.
- */
-// function setEditUserDialogOpenState(state, action, visibility) {
-//   return {
-//     ...state,
-//     users: state.users.map(user => {
-//       if (user.id === action.payload.id) {
-//         return {...user, editUserDialogOpen: visibility}
-//       }
-//       return user
-//     })
-//   }
-// }
-
 const userListHandlers = {
-  // ADD_ERROR(state, action) {
-  //   return {
-  //     ...state,
-  //     errors: {
-  //       ...state.errors,
-  //       ...action.error
-  //     }
-  //   }
-  // },
-  // ADD_TO_USERS: (state, action) => {
-  //   const mappedEmailUsers = action.payload.users.map(user => {
-  //     if (!user.email && emailRegex.test(user.login_id)) {
-  //       return {...user, email: user.login_id}
-  //     }
-  //     return user
-  //   })
-
-  //   const newState = {
-  //     isLoading: false,
-  //     users: state.users.concat(mappedEmailUsers)
-  //   }
-  //   if (action.payload.xhr) {
-  //     newState.links = parseLinkHeader(action.payload.xhr.getResponseHeader('Link'))
-  //   }
-  //   return {...state, ...newState}
-  // },
   GOT_USERS(state, action) {
     return {
       ...state,
@@ -81,12 +35,6 @@ const userListHandlers = {
       users: state.users.map(user => (user.id === action.payload.id ? action.payload : user))
     }
   },
-  // OPEN_EDIT_USER_DIALOG(state, action) {
-  //   return setEditUserDialogOpenState(state, action, true)
-  // },
-  // CLOSE_EDIT_USER_DIALOG(state, action) {
-  //   return setEditUserDialogOpenState(state, action, false)
-  // },
   UPDATE_SEARCH_FILTER(state, action) {
     return {
       ...state,

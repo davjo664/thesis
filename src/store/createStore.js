@@ -19,8 +19,6 @@
 import parseLinkHeader from 'parse-link-header'
 import ajaxJSON from '../jquery.ajaxJSON'
 
-const getNextUrl = obj => obj && obj.links && obj.links.next && obj.links.next.url
-
 /**
  * Build a store that support basic ajax fetching (first, next, all),
  * and caches the results by params.
@@ -54,16 +52,6 @@ export default function factory(spec) {
         const url = this.getUrl()
 
         return this._load(key, url, normalizedParams)
-      },
-
-      /**
-       * Create a record; since we're lazy, just blow away all the store
-       * data, but reload the last thing we fetched
-       */
-      create(params) {
-        const url = this.getUrl()
-
-        return ajaxJSON(url, 'POST', this.normalizeParams(params))
       },
 
       _load(key, url, params, options = {}) {
