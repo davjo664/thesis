@@ -22,6 +22,8 @@ import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMiniArrowUp from '@instructure/ui-icons/lib/Solid/IconMiniArrowUp'
 import IconMiniArrowDown from '@instructure/ui-icons/lib/Solid/IconMiniArrowDown'
 import Button from '@instructure/ui-buttons/lib/components/Button'
+import UserActions from '../actions/UserActions'
+import { connect } from "react-redux";
 
 function preventDefault (fn) {
   return function (event) {
@@ -30,8 +32,8 @@ function preventDefault (fn) {
   }
 }
 
-export default function UsersListHeader(props) {
-  const {id, tipAsc, tipDesc, label, onUpdateFilters} = props
+function UsersListHeader(props) {
+  const {id, tipAsc, tipDesc, label} = props
   const {sort, order, search_term, role_filter_id} = props.searchFilter
   const newOrder = (sort === id && order === 'asc') || (!sort && id === 'username') ? 'desc' : 'asc'
 
@@ -40,7 +42,8 @@ export default function UsersListHeader(props) {
       <Tooltip tip={sort === id && order === 'asc' ? tipAsc : tipDesc}>
         <Button
           onClick={preventDefault(() => {
-            onUpdateFilters({search_term, sort: id, order: newOrder, role_filter_id})
+            props.updateSearchFilter({search_term, sort: id, order: newOrder, role_filter_id})
+            props.applySearchFilter();
           })}
           variant="link"
           theme={{fontWeight: '700', mediumPadding: '0', mediumHeight: '1.5rem'}}
@@ -53,16 +56,22 @@ export default function UsersListHeader(props) {
   )
 }
 
+const mapStateToProps = state => ({
+  searchFilter: state.userList.searchFilter
+});
+
+const mapDispatchToProps = (dispatch, props) => {
+  return({
+    updateSearchFilter: (filter) => {dispatch(UserActions.updateSearchFilter(filter))},
+    applySearchFilter: () => {dispatch(UserActions.applySearchFilter())}
+  })
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UsersListHeader)
+
 UsersListHeader.propTypes = {
   id: string.isRequired,
   tipAsc: string.isRequired,
   tipDesc: string.isRequired,
-  label: string.isRequired,
-  onUpdateFilters: func.isRequired,
-  searchFilter: shape({
-    sort: string,
-    order: string,
-    search_term: string,
-    fole_filter_id: string
-  }).isRequired
+  label: string.isRequired
 }

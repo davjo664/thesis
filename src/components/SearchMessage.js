@@ -23,19 +23,16 @@ import Spinner from '@instructure/ui-elements/lib/components/Spinner'
 import {array, func, string, shape, oneOf} from 'prop-types'
 import View from '@instructure/ui-layout/lib/components/View'
 import EmptyDesert from '../EmptyDesert'
+import { connect } from "react-redux";
+import UserActions from '../actions/UserActions'
 
 const linkPropType = shape({
   url: string.isRequired,
   page: string.isRequired
 }).isRequired
 
-export default class SearchMessage extends Component {
+class SearchMessage extends Component {
   static propTypes = {
-    collection: shape({
-      data: array.isRequired,
-      links: shape({current: linkPropType})
-    }).isRequired,
-    setPage: func.isRequired,
     noneFoundMessage: string.isRequired,
     getLiveAlertRegion: func,
     dataType: oneOf(['Course', 'User']).isRequired
@@ -50,29 +47,25 @@ export default class SearchMessage extends Component {
   state = {}
 
   componentWillReceiveProps(nextProps) {
-    if (!nextProps.collection.loading) {
+    if (!this.props.userList.isLoading) {
       const newState = {}
       if (this.state.pageBecomingCurrent) newState.pageBecomingCurrent = null
       this.setState(newState)
     }
   }
 
-  handleSetPage = page => {
-    this.setState({pageBecomingCurrent: page}, () => this.props.setPage(page))
-  }
-
   isLastPageUnknown() {
-    return !this.props.collection.links.last
+    return !this.props.userList.links.last
   }
 
   currentPage() {
-    return this.state.pageBecomingCurrent || Number(this.props.collection.links.current.page)
+    return this.state.pageBecomingCurrent || Number(this.props.userList.links.current.page)
   }
 
   lastKnownPageNumber() {
     const link =
-      this.props.collection.links &&
-      (this.props.collection.links.last || this.props.collection.links.next)
+    this.props.userList.links &&
+      (this.props.userList.links.last || this.props.userList.links.next)
 
     if (!link) return 0
     return Number(link.page)
@@ -86,7 +79,10 @@ export default class SearchMessage extends Component {
     return (
       <PaginationButton
         key={pageNumber}
-        onClick={() => this.handleSetPage(pageNumber)}
+        onClick={() => {
+          this.props.updateSearchFilter({page:pageNumber});
+          this.props.applySearchFilter()
+        }}
         current={isCurrent}
         aria-label={`Page ${pageNumber}`}
       >
@@ -100,28 +96,27 @@ export default class SearchMessage extends Component {
   }
 
   render() {
-    console.log("RENDER PAGINATION");
-    const {collection, noneFoundMessage} = this.props
-    console.log(collection);
+    const {links, users, isLoading} = this.props.userList;
+    const {noneFoundMessage} = this.props
     const errorLoadingMessage = 'There was an error with your query; please try a different search'
 
-    if (collection.error) {
+    if (this.props.errors) {
       return (
         <div className="text-center pad-box">
           <div className="alert alert-error">{errorLoadingMessage}</div>
         </div>
       )
-    } else if (collection.loading) {
+    } else if (isLoading) {
       return (
         <View display="block" textAlign="center" padding="medium">
           <Spinner size="medium" title={'Loading...'} />
         </View>
       )
-    } else if (!collection.data.length) {
+    } else if (!users.length) {
       return (
         <Billboard size="large" heading={noneFoundMessage} headingAs="h2" hero={<EmptyDesert />} />
       )
-    } else if (collection.links) {
+    } else if (links) {
       const lastPageNumber = this.lastKnownPageNumber()
       const lastIndex = lastPageNumber - 1
       const paginationButtons = Array.from(Array(lastPageNumber))
@@ -129,8 +124,6 @@ export default class SearchMessage extends Component {
       paginationButtons[lastIndex] = this.renderPaginationButton(lastIndex)
       const visiblePageRangeStart = Math.max(this.currentPage() - 10, 0)
       const visiblePageRangeEnd = Math.min(this.currentPage() + 10, lastIndex)
-      console.log("visiblePageRangeStart",visiblePageRangeStart);
-      console.log("visiblePageRangeEnd",visiblePageRangeEnd)
       for (let i = visiblePageRangeStart; i < visiblePageRangeEnd; i++) {
         paginationButtons[i] = this.renderPaginationButton(i)
       }
@@ -158,3 +151,18 @@ export default class SearchMessage extends Component {
     }
   }
 }
+
+const mapStateToProps = state => {
+  return ({
+    userList: state.userList
+  })
+};
+
+const mapDispatchToProps = (dispatch, props) => {
+  return({
+    updateSearchFilter: (filter) => {dispatch(UserActions.updateSearchFilter(filter))},
+    applySearchFilter: () => {dispatch(UserActions.applySearchFilter())}
+  })
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(SearchMessage)

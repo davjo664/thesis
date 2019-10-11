@@ -25,8 +25,10 @@ import IconMessageLine from '@instructure/ui-icons/lib/Line/IconMessage'
 import IconEditLine from '@instructure/ui-icons/lib/Line/IconEdit'
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
 import UserLink from './UserLink'
+import { connect } from "react-redux";
+import UserActions from '../actions/UserActions'
 
-export default function UsersListRow({accountId, user, permissions, handleSubmitEditUserForm}) {
+function UsersListRow({accountId, user, permissions, applySearchFilter}) {
   return (
     <tr>
       <th scope="row">
@@ -67,7 +69,9 @@ export default function UsersListRow({accountId, user, permissions, handleSubmit
             createOrUpdate="update"
             url={`/accounts/${accountId}/users/${user.id}`}
             user={user}
-            afterSave={handleSubmitEditUserForm}
+            afterSave={()=>{
+              applySearchFilter()
+            }}
           >
             <span>
               <Tooltip tip={`Edit ${user.name}`}>
@@ -83,13 +87,19 @@ export default function UsersListRow({accountId, user, permissions, handleSubmit
   )
 }
 
+const mapStateToProps = state => ({
+  accountId: state.userList.accountId,
+  permissions: state.userList.permissions
+});
+
+const mapDispatchToProps = (dispatch, props) => {
+  return({
+    applySearchFilter: () => {dispatch(UserActions.applySearchFilter())}
+  })
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(UsersListRow)
+
 UsersListRow.propTypes = {
-  accountId: string.isRequired,
-  user: CreateOrUpdateUserModal.propTypes.user.isRequired,
-  handleSubmitEditUserForm: func.isRequired,
-  permissions: shape({
-    can_masquerade: bool,
-    can_message_users: bool,
-    can_edit_users: bool
-  }).isRequired
+  user: CreateOrUpdateUserModal.propTypes.user.isRequired
 }

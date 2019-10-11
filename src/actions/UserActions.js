@@ -17,6 +17,9 @@
  */
 
 import UsersStore from '../store/UsersStore'
+import {stringify} from 'qs'
+
+const MIN_SEARCH_LENGTH = 3
 
 export default {
   gotUserList(users, xhr) {
@@ -61,9 +64,11 @@ export default {
   applySearchFilter(minSearchLength, store = UsersStore) {
     return (dispatch, getState) => {
       const searchFilter = getState().userList.searchFilter
-      if (
-        !searchFilter ||
-        searchFilter.search_term.length >= minSearchLength ||
+      // Update query params
+      const query = stringify(searchFilter)
+      window.history.replaceState(null, null, `?${query}`)
+      if ( 
+        (searchFilter.search_term && searchFilter.search_term.length >= MIN_SEARCH_LENGTH) ||
         searchFilter.search_term === ''
       ) {
         dispatch(this.loadingUsers())
@@ -71,7 +76,7 @@ export default {
           dispatch(this.gotUserList(response, xhr))
         })
       } else {
-        dispatch(this.displaySearchTermTooShortError(minSearchLength))
+        dispatch(this.displaySearchTermTooShortError(MIN_SEARCH_LENGTH))
       }
     }
   }

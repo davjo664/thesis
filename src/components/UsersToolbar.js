@@ -33,6 +33,9 @@ import Select from '@instructure/ui-core/lib/components/Select'
 import TextInput from '@instructure/ui-forms/lib/components/TextInput'
 
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
+import { connect } from "react-redux";
+import UserActions from '../actions/UserActions'
+import _ from 'underscore'
 
 function preventDefault (fn) {
   return function (event) {
@@ -41,16 +44,26 @@ function preventDefault (fn) {
   }
 }
 
-export default function UsersToolbar(props) {
+export const SEARCH_DEBOUNCE_TIME = 750
+
+function UsersToolbar(props) {
   const placeholder = 'Search people...'
+  const debouncedDispatchApplySearchFilter = _.debounce(
+    props.applySearchFilter,
+    SEARCH_DEBOUNCE_TIME
+  )
   return (
-    <form onSubmit={preventDefault(props.onApplyFilters)}>
+    <form onSubmit={preventDefault(()=>props.applySearchFilter)}>
       <FormFieldGroup layout="columns" description="">
         <GridCol width="auto">
           <Select
             label={<ScreenReaderContent>{'Filter by user type'}</ScreenReaderContent>}
             value={props.role_filter_id}
-            onChange={e => props.onUpdateFilters({role_filter_id: e.target.value})}
+            onChange={e => {
+              props.updateSearchFilter({...props.searchFilter, role_filter_id: e.target.value})
+              debouncedDispatchApplySearchFilter();
+            }
+            }
           >
             <option key="all" value="">
               {'All Roles'}
@@ -68,7 +81,12 @@ export default function UsersToolbar(props) {
           value={props.search_term}
           label={<ScreenReaderContent>{placeholder}</ScreenReaderContent>}
           placeholder={placeholder}
-          onChange={e => props.onUpdateFilters({search_term: e.target.value})}
+          onChange={e => {
+            props.updateSearchFilter({...props.searchFilter, search_term: e.target.value})
+            debouncedDispatchApplySearchFilter();
+          }
+          }
+          
           onKeyUp={e => {
             if (e.key === 'Enter') {
               props.toggleSRMessage(true)
@@ -82,11 +100,11 @@ export default function UsersToolbar(props) {
         />
 
         <GridCol width="auto">
-          {window.ENV.PERMISSIONS.can_create_users && (
+          {props.permissions.can_create_users && (
             <CreateOrUpdateUserModal
               createOrUpdate="create"
               url={`/accounts/${props.accountId}/users`}
-              afterSave={props.onApplyFilters} // update displayed results in case new user should appear
+              afterSave={props.applySearchFilter} // update displayed results in case new user should appear
             >
               <Button aria-label={'Add people'}>
                 <IconPlusLine />
@@ -129,27 +147,27 @@ function renderKabobMenu(accountId) {
   return null
 }
 
-UsersToolbar.propTypes = {
-  toggleSRMessage: func.isRequired,
-  onUpdateFilters: func.isRequired,
-  onApplyFilters: func.isRequired,
-  search_term: string,
-  role_filter_id: string,
-  errors: shape({search_term: string}),
-  accountId: string,
-  roles: arrayOf(
-    shape({
-      id: string.isRequired,
-      label: string.isRequired
-    })
-  ).isRequired
+const mapStateToProps = state => {
+  return ({
+    searchFilter: state.userList.searchFilter,
+    accountId: state.userList.accountId,
+    search_term: state.userList.searchFilter.search_term,
+    role_filter_id: state.userList.searchFilter.role_filter_id,
+    errors: state.userList.errors,
+    roles: state.userList.roles,
+    permissions: state.userList.permissions
+  })
+};
+
+const mapDispatchToProps = (dispatch, props) => {
+  return({
+    updateSearchFilter: (filter) => {dispatch(UserActions.updateSearchFilter({page: null, ...filter}))},
+    applySearchFilter: () => {dispatch(UserActions.applySearchFilter())}
+  })
 }
 
-UsersToolbar.defaultProps = {
-  search_term: '',
-  role_filter_id: '',
-  errors: {},
-  accountId: '',
-  handlers: {},
-  roles: []
+export default connect(mapStateToProps,mapDispatchToProps)(UsersToolbar)
+
+UsersToolbar.propTypes = {
+  toggleSRMessage: func.isRequired
 }
