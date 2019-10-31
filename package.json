@@ -35,6 +35,7 @@
     "immutability-helper": "^2",
     "jquery": "https://github.com/ryankshaw/jquery.git#dadf794ebc4c4dcf94c344dab7d9341d46bc17cc",
     "lodash": "^4.16.4",
+    "plato": "^1.7.0",
     "prop-types": "^15",
     "qs": "^6.6.0",
     "react": "^16.8.6",
