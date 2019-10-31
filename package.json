@@ -37,6 +37,7 @@
     "lodash": "^4.16.4",
     "page.js": "^4.13.3",
     "parse-link-header": "^1",
+    "plato": "^1.7.0",
     "prop-types": "^15",
     "qs": "^6.6.0",
     "react": "^16.8.6",
