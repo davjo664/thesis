@@ -83,7 +83,7 @@ const UsersPane = props => {
         <View display="block" textAlign="center" padding="medium">
           <Spinner size="medium" title={'Loading...'} />
         </View> : 
-        <><UsersList
+        <React.Fragment><UsersList
           users={data.users.users}
           noneFoundMessage={'No users found'}
         />
@@ -91,7 +91,7 @@ const UsersPane = props => {
           users={data.users.users}
           links={data.users.links}
           dataType="User"
-        /></>
+        /></React.Fragment>
       }
     </div>
   )
