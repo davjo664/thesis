@@ -22,8 +22,9 @@ import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMiniArrowUp from '@instructure/ui-icons/lib/Solid/IconMiniArrowUp'
 import IconMiniArrowDown from '@instructure/ui-icons/lib/Solid/IconMiniArrowDown'
 import Button from '@instructure/ui-buttons/lib/components/Button'
-import UsersPaneContext from '../context/userspane-context'
-
+import { GET_SEARCH_FILTER } from '../graphql/queries'
+import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
+import { useMutation, useQuery } from '@apollo/react-hooks';
 
 function preventDefault (fn) {
   return function (event) {
@@ -34,16 +35,17 @@ function preventDefault (fn) {
 
 const UsersListHeader = (props) => {
   const {id, tipAsc, tipDesc, label} = props
-  const {sort, order, search_term, role_filter_id} = props.searchFilter
+  const { data } = useQuery(GET_SEARCH_FILTER);
+  const {sort, order, search_term, role_filter_id} = data.searchFilter
   const newOrder = (sort === id && order === 'asc') || (!sort && id === 'username') ? 'desc' : 'asc'
-  const usersPaneContext = useContext(UsersPaneContext);
-
+  const [mutate] = useMutation(UPDATE_SEARCH_FILTER);
+    
   return (
     <th scope="col">
       <Tooltip tip={sort === id && order === 'asc' ? tipAsc : tipDesc}>
         <Button
           onClick={preventDefault(() => {
-            usersPaneContext.onUpdateFilters({search_term, sort: id, order: newOrder, role_filter_id})
+            mutate({variables:{ filter: {search_term, sort: id, order: newOrder, role_filter_id}}})
           })}
           variant="link"
           theme={{fontWeight: '700', mediumPadding: '0', mediumHeight: '1.5rem'}}
@@ -61,11 +63,5 @@ UsersListHeader.propTypes = {
   id: string.isRequired,
   tipAsc: string.isRequired,
   tipDesc: string.isRequired,
-  label: string.isRequired,
-  searchFilter: shape({
-    sort: string,
-    order: string,
-    search_term: string,
-    fole_filter_id: string
-  }).isRequired
+  label: string.isRequired
 }

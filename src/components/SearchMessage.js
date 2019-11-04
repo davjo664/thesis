@@ -20,12 +20,15 @@ import React, {useState, useEffect} from 'react'
 import Billboard from '@instructure/ui-billboard/lib/components/Billboard'
 import Pagination, {PaginationButton} from '@instructure/ui-pagination/lib/components/Pagination'
 import {array, func, oneOf, arrayOf, object} from 'prop-types'
+import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
+import { useMutation } from '@apollo/react-hooks';
 
 const SearchMessage = props => {
   const [state, setState] = useState({});
+  const [mutate] = useMutation(UPDATE_SEARCH_FILTER);
 
   useEffect(()=>{
-    props.setPage(state.pageBecomingCurrent)
+    mutate({variables:{ filter: {page: state.pageBecomingCurrent} }})
   }, [ state.pageBecomingCurrent ])
   
 
@@ -81,8 +84,6 @@ const SearchMessage = props => {
     paginationButtons[lastIndex] = renderPaginationButton(lastIndex)
     const visiblePageRangeStart = Math.max(currentPage() - 10, 0)
     const visiblePageRangeEnd = Math.min(currentPage() + 10, lastIndex)
-    console.log("visiblePageRangeStart",visiblePageRangeStart);
-    console.log("visiblePageRangeEnd",visiblePageRangeEnd)
     for (let i = visiblePageRangeStart; i < visiblePageRangeEnd; i++) {
       paginationButtons[i] = renderPaginationButton(i)
     }
@@ -112,7 +113,6 @@ const SearchMessage = props => {
 
 SearchMessage.propTypes = {
   users: arrayOf(object).isRequired,
-  setPage: func.isRequired,
   getLiveAlertRegion: func,
   dataType: oneOf(['Course', 'User']).isRequired
 }

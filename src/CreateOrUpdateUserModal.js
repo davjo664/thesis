@@ -33,7 +33,7 @@ import TimeZoneSelect from './components/TimeZoneSelect'
 
 import { useMutation } from '@apollo/react-hooks';
 import { CREATE_USER, UPDATE_USER } from './graphql/mutations';
-import UsersPaneContext from './context/userspane-context'
+import { USERS_QUERY } from './graphql/queries';
 //
 // Copyright (C) 2012 - present Instructure, Inc.
 //
@@ -135,9 +135,8 @@ function preventDefault (fn) {
 
 const CreateOrUpdateUserModal = props => {
   const [state, setState] = useState(initialState);
-  const [createUser, { data: createUserData, error: createUserError }] = useMutation(CREATE_USER);
-  const [updateUser, { data: updateUserData, error: updateUserError }] = useMutation(UPDATE_USER);
-  const usersPaneContext = useContext(UsersPaneContext);
+  const [createUser, { data: createUserData, error: createUserError }] = useMutation(CREATE_USER,{refetchQueries: USERS_QUERY});
+  const [updateUser, { data: updateUserData, error: updateUserError }] = useMutation(UPDATE_USER, {refetchQueries: USERS_QUERY});
 
   useEffect(() => {
     if (props.createOrUpdate === 'update') {
@@ -155,7 +154,6 @@ const CreateOrUpdateUserModal = props => {
   useEffect(() => {
     if (createUserData || updateUserData) {
       setState({...initialState})
-      usersPaneContext.handleSubmitUserForm();
     }
   }, [createUserData, updateUserData]);
 

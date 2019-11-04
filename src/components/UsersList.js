@@ -44,28 +44,24 @@ const UsersList = props => {
             label={'Name'}
             tipDesc={'Click to sort by name ascending'}
             tipAsc={'Click to sort by name descending'}
-            searchFilter={props.searchFilter}
           />
           <UsersListHeader
             id="email"
             label={'Email'}
             tipDesc={'Click to sort by email ascending'}
             tipAsc={'Click to sort by email descending'}
-            searchFilter={props.searchFilter}
           />
           <UsersListHeader
             id="sis_id"
             label={'SIS ID'}
             tipDesc={'Click to sort by SIS ID ascending'}
             tipAsc={'Click to sort by SIS ID descending'}
-            searchFilter={props.searchFilter}
           />
           <UsersListHeader
             id="last_login"
             label={'Last Login'}
             tipDesc={'Click to sort by last login ascending'}
             tipAsc={'Click to sort by last login descending'}
-            searchFilter={props.searchFilter}
           />
           <th width="1" scope="col">
             <ScreenReaderContent>{'User option links'}</ScreenReaderContent>
@@ -86,24 +82,7 @@ const UsersList = props => {
 
 UsersList.propTypes = {
   users: arrayOf(object).isRequired,
-  searchFilter: object.isRequired,
   noneFoundMessage: string.isRequired
 }
 
-export default memo(
-  UsersList, 
-  (props, nextProps) => {
-    let count = 0
-    for (const prop in props) {
-      ++count
-      if (props[prop] !== nextProps[prop]) {
-        // a change to searchFilter on it's own should not cause the list
-        // to re-render
-        if (prop !== 'searchFilter') {
-          return true
-        }
-      }
-    }
-    return count !== Object.keys(nextProps).length
-  }
-)
+export default UsersList

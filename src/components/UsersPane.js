@@ -22,60 +22,49 @@ import ScreenReaderContent from '@instructure/ui-a11y/lib/components/ScreenReade
 import UsersList from './UsersList'
 import UsersToolbar from './UsersToolbar'
 import SearchMessage from './SearchMessage'
-import UsersPaneContext from '../context/userspane-context'
-import { useQuery } from '@apollo/react-hooks';
+import { useQuery, useMutation } from '@apollo/react-hooks';
 import { USERS_QUERY } from '../graphql/queries';
+import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
 import Spinner from '@instructure/ui-elements/lib/components/Spinner';
 import View from '@instructure/ui-layout/lib/components/View';
+import { GET_SEARCH_FILTER, GET_ERRORS } from '../graphql/queries'
 
 export const MIN_SEARCH_LENGTH = 3
+let previousSearchFilter = {search_term: ''};
 
 const UsersPane = props => {
   const [srMessageDisplayed, setSrMessageDisplayed] = useState(false);
-  const [searchFilter, setSearchFilter] = useState({search_term: ''});
-  const [searchTermTooShort, setSearchTermTooShort] = useState(false);
-
-  const updateQueryString = () => {
-    props.onUpdateQueryParams(searchFilter)
-  }
+  const [mutate] = useMutation(UPDATE_SEARCH_FILTER);
 
   useEffect(() => {
-    const {search_term, role_filter_id} = {...UsersToolbar.defaultProps, ...props.queryParams}
-    setSearchFilter({search_term, role_filter_id});
+    // make page reflect what the querystring params asked for
+    let params = new URLSearchParams(window.location.search);
+    let searchFilterFromQuery = {};
+    for (let p of params) {
+      var obj = {};
+      obj[p[0]] = p[1];
+      searchFilterFromQuery = {...searchFilterFromQuery, ...obj}
+    }
+    mutate({variables:{ filter: {...searchFilterFromQuery}}})
   }, [])
 
-  useEffect(() => {
-    updateQueryString()
-  }, [ searchFilter ])
-
+  const { data: searchFilterData } = useQuery(GET_SEARCH_FILTER);
+  const { data: errorsData } = useQuery(GET_ERRORS);
+  if (!errorsData.errors) {
+    previousSearchFilter = { 
+      page: searchFilterData.searchFilter.page ? searchFilterData.searchFilter.page : 1, 
+      search_term: searchFilterData.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? searchFilterData.searchFilter.search_term : "",
+      order: searchFilterData.searchFilter.order,
+      sort: searchFilterData.searchFilter.sort,
+      role_filter_id: searchFilterData.searchFilter.role_filter_id
+    }
+  }
   const { loading, error, data, refetch } = useQuery(USERS_QUERY, 
-    { variables: { 
-      page: searchFilter.page ? searchFilter.page : 1, 
-      search_term: searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? searchFilter.search_term : "",
-      order: searchFilter.order,
-      sort: searchFilter.sort,
-      role_filter_id: searchFilter.role_filter_id
-    } }
+    { variables: previousSearchFilter}
   );
 
   if (error) {
     return <p>error :(</p>;
-  }
-  const handleUpdateSearchFilter = filter => {
-    setSearchFilter({...searchFilter, ...filter, page: null});
-    if ( filter && filter.search_term && filter.search_term.length < MIN_SEARCH_LENGTH  ) {
-      setSearchTermTooShort(true);
-    } else {
-      setSearchTermTooShort(false);
-    }
-  }
-
-  const handleSubmitUserForm = (attributes, id) => {
-    refetch();
-  }
-
-  const handleSetPage = page => {
-    setSearchFilter({...searchFilter, page });
   }
 
   return (
@@ -83,14 +72,8 @@ const UsersPane = props => {
       <ScreenReaderContent>
         <h1>{'People'}</h1>
       </ScreenReaderContent>
-      <UsersPaneContext.Provider value={{
-        handleSubmitUserForm: handleSubmitUserForm,
-        onUpdateFilters: handleUpdateSearchFilter
-      }}>
       {
         <UsersToolbar
-          errors={searchTermTooShort ? {search_term: "Search message too short"} : {}}
-          {...searchFilter}
           toggleSRMessage={(show = false) => {
             setSrMessageDisplayed(show);
           }}
@@ -102,29 +85,16 @@ const UsersPane = props => {
         </View> : 
         <><UsersList
           users={data.users.users}
-          searchFilter={searchFilter}
           noneFoundMessage={'No users found'}
         />
         <SearchMessage
           users={data.users.users}
           links={data.users.links}
-          searchFilter={searchFilter}
-          setPage={handleSetPage}
           dataType="User"
         /></>
       }
-      </UsersPaneContext.Provider>
     </div>
   )
-}
-
-UsersPane.propTypes = {
-  onUpdateQueryParams: func.isRequired,
-  queryParams: shape({
-    page: string,
-    search_term: string,
-    role_filter_id: string
-  }).isRequired
 }
 
 export default UsersPane;

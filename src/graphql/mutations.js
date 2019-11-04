@@ -1,6 +1,6 @@
 import gql from 'graphql-tag';
 
-gql`input UserInput {
+gql` input UserInput {
   name: String!
   sortable_name: String!
   short_name: String!
@@ -30,4 +30,10 @@ export const UPDATE_USER = gql`
           name
         }
     }
+`;
+
+export const UPDATE_SEARCH_FILTER = gql`
+  mutation updateSearchFilterMutation($filter: SearchFilter!) {
+    updateSearchFilter(filter: $filter) @client
+  }
 `;

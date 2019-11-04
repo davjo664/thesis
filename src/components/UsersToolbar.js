@@ -34,7 +34,9 @@ import TextInput from '@instructure/ui-forms/lib/components/TextInput'
 
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
 import UsersSearchContext from '../context/userssearch-context'
-import UsersPaneContext from '../context/userspane-context'
+import { GET_ERRORS, GET_SEARCH_FILTER } from '../graphql/queries'
+import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
+import { useMutation, useQuery } from '@apollo/react-hooks';
 
 function preventDefault (fn) {
   return function (event) {
@@ -45,17 +47,20 @@ function preventDefault (fn) {
 
 const UsersToolbar = (props) => {
   const usersSearchContext = useContext(UsersSearchContext);
-  const usersPaneContext = useContext(UsersPaneContext);
   
   const placeholder = 'Search people...'
+  const [mutate] = useMutation(UPDATE_SEARCH_FILTER, {variables:{ filter: {} }});
+  const { data } = useQuery(GET_SEARCH_FILTER);
+  const { data: errorsData } = useQuery(GET_ERRORS);
+
   return (
-    <form onSubmit={preventDefault(usersPaneContext.onUpdateFilters)}>
+    <form onSubmit={preventDefault(mutate)}>
       <FormFieldGroup layout="columns" description="">
         <GridCol width="auto">
           <Select
             label={<ScreenReaderContent>{'Filter by user type'}</ScreenReaderContent>}
-            value={props.role_filter_id}
-            onChange={e => usersPaneContext.onUpdateFilters({role_filter_id: e.target.value})}
+            value={data ? data.searchFilter.role_filter_id : ''}
+            onChange={e => mutate({variables:{ filter: {role_filter_id: e.target.value, page:1} }})}
           >
             <option key="all" value="">
               {'All Roles'}
@@ -70,10 +75,10 @@ const UsersToolbar = (props) => {
 
         <TextInput
           type="search"
-          value={props.search_term}
+          value={data ? data.searchFilter.search_term:''}
           label={<ScreenReaderContent>{placeholder}</ScreenReaderContent>}
           placeholder={placeholder}
-          onChange={e => usersPaneContext.onUpdateFilters({search_term: e.target.value})}
+          onChange={e => mutate({variables:{ filter: {search_term: e.target.value, page:1}}})}
           onKeyUp={e => {
             if (e.key === 'Enter') {
               props.toggleSRMessage(true)
@@ -83,7 +88,7 @@ const UsersToolbar = (props) => {
           }}
           onBlur={() => props.toggleSRMessage(true)}
           onFocus={() => props.toggleSRMessage(false)}
-          messages={!!props.errors.search_term && [{type: 'error', text: props.errors.search_term}]}
+          messages={errorsData.errors && errorsData.errors.search_term && [{type: 'error', text: errorsData.errors.search_term}]}
         />
 
         <GridCol width="auto">
@@ -135,15 +140,5 @@ const renderKabobMenu = (accountId) => {
 }
 
 UsersToolbar.propTypes = {
-  toggleSRMessage: func.isRequired,
-  search_term: string,
-  role_filter_id: string,
-  errors: shape({search_term: string})
-}
-
-UsersToolbar.defaultProps = {
-  search_term: '',
-  role_filter_id: '',
-  errors: {},
-  handlers: {}
+  toggleSRMessage: func.isRequired
 }
