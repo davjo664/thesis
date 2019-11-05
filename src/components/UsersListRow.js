@@ -17,7 +17,7 @@
  */
 
 import React from 'react'
-import {string, func, shape, bool} from 'prop-types'
+import {string, func, shape, bool, object} from 'prop-types'
 import Button from '@instructure/ui-buttons/lib/components/Button'
 import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMasqueradeLine from '@instructure/ui-icons/lib/Line/IconMasquerade'
@@ -28,14 +28,13 @@ import UserLink from './UserLink'
 import { connect } from "react-redux";
 import UserActions from '../actions/UserActions'
 
-function UsersListRow({accountId, user, permissions, applySearchFilter}) {
+function UsersListRow({user, permissions, accountId}) {
   return (
     <tr>
       <th scope="row">
         <UserLink
-          href={`/accounts/${accountId}/users/${user.id}`}
-          name={user.sortable_name}
-          avatar_url={user.avatar_url}
+          accountId={accountId}
+          user={user}
           size="x-small"
         />
       </th>
@@ -67,11 +66,7 @@ function UsersListRow({accountId, user, permissions, applySearchFilter}) {
         {permissions.can_edit_users && (
           <CreateOrUpdateUserModal
             createOrUpdate="update"
-            url={`/accounts/${accountId}/users/${user.id}`}
             user={user}
-            afterSave={()=>{
-              applySearchFilter()
-            }}
           >
             <span>
               <Tooltip tip={`Edit ${user.name}`}>
@@ -88,18 +83,17 @@ function UsersListRow({accountId, user, permissions, applySearchFilter}) {
 }
 
 const mapStateToProps = state => ({
-  accountId: state.userList.accountId,
-  permissions: state.userList.permissions
+  permissions: state.userList.permissions,
+  accountId: state.userList.accountId
 });
 
 const mapDispatchToProps = (dispatch, props) => {
   return({
-    applySearchFilter: () => {dispatch(UserActions.applySearchFilter())}
   })
 }
 
 export default connect(mapStateToProps, mapDispatchToProps)(UsersListRow)
 
 UsersListRow.propTypes = {
-  user: CreateOrUpdateUserModal.propTypes.user.isRequired
+  user: object.isRequired
 }

@@ -27,6 +27,8 @@ import update from 'immutability-helper'
 import {get, isEmpty} from 'lodash'
 import axios from 'axios'
 import $ from 'jquery'
+import { connect } from "react-redux";
+import UserActions from './actions/UserActions'
 
 import {firstNameFirst, lastNameFirst, nameParts} from './user_utils'
 import InstuiModal, {ModalBody, ModalFooter} from './InstuiModal'
@@ -131,12 +133,11 @@ function preventDefault (fn) {
   }
 }
 
-export default class CreateOrUpdateUserModal extends React.Component {
+class CreateOrUpdateUserModal extends React.Component {
   static propTypes = {
     // whatever you pass as the child, when clicked, will open the dialog
     children: element.isRequired,
     createOrUpdate: oneOf(['create', 'update']).isRequired,
-    url: string.isRequired,
     user: shape({
       name: string.isRequired,
       sortable_name: string,
@@ -147,7 +148,6 @@ export default class CreateOrUpdateUserModal extends React.Component {
     customized_login_handle_name: string,
     delegated_authentication: bool.isRequired,
     showSIS: bool.isRequired,
-    afterSave: func.isRequired
   }
 
   static defaultProps = {
@@ -157,7 +157,7 @@ export default class CreateOrUpdateUserModal extends React.Component {
   }
 
   state = {...initialState}
-
+  
   componentWillMount() {
     if (this.props.createOrUpdate === 'update') {
       // only get the attributes from the user that we are actually going to show in the <input>s
@@ -169,6 +169,10 @@ export default class CreateOrUpdateUserModal extends React.Component {
       }, {})
       this.setState(update(this.state, {data: {user: {$set: userDataFromProps}}}))
     }
+    this.url = this.props.createOrUpdate === 'update' ? 
+              `/accounts/${this.props.accountId}/users/${this.props.user.id}`:
+              `/accounts/${this.props.accountId}/users`;
+    this.afterSave = this.props.applySearchFilter;
   }
 
   onChange = (field, value) => {
@@ -200,7 +204,7 @@ export default class CreateOrUpdateUserModal extends React.Component {
   onSubmit = () => {
     if (!isEmpty(this.state.errors)) return
     const method = {create: 'POST', update: 'PUT'}[this.props.createOrUpdate]
-    axios({url: this.props.url, method, data: this.state.data}).then(
+    axios({url: this.url, method, data: this.state.data}).then(
       response => {
         const getUserObj = o => (o.user ? getUserObj(o.user) : o)
         const user = getUserObj(response.data)
@@ -213,7 +217,7 @@ export default class CreateOrUpdateUserModal extends React.Component {
         )
 
         this.setState({...initialState})
-        if (this.props.afterSave) this.props.afterSave(response)
+        if (this.afterSave) this.afterSave(response)
       },
       ({response}) => {
         const errors = response.data.errors
@@ -350,3 +354,15 @@ export default class CreateOrUpdateUserModal extends React.Component {
     </span>
   )
 }
+
+const mapStateToProps = state => ({
+  accountId: state.userList.accountId
+});
+
+const mapDispatchToProps = (dispatch, props) => {
+  return({
+    applySearchFilter: () => {dispatch(UserActions.applySearchFilter())}
+  })
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(CreateOrUpdateUserModal)

@@ -103,8 +103,6 @@ function UsersToolbar(props) {
           {props.permissions.can_create_users && (
             <CreateOrUpdateUserModal
               createOrUpdate="create"
-              url={`/accounts/${props.accountId}/users`}
-              afterSave={props.applySearchFilter} // update displayed results in case new user should appear
             >
               <Button aria-label={'Add people'}>
                 <IconPlusLine />
