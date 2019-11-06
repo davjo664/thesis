@@ -110,16 +110,16 @@ function UsersToolbar(props) {
               </Button>
             </CreateOrUpdateUserModal>
           )}{' '}
-          {renderKabobMenu(props.accountId)}
+          {renderKabobMenu(props.accountId, props.permissions)}
         </GridCol>
       </FormFieldGroup>
     </form>
   )
 }
 
-function renderKabobMenu(accountId) {
-  const showAvatarItem = window.ENV.PERMISSIONS.can_manage_admin_users // see accounts_controller#avatars
-  const showGroupsItem = window.ENV.PERMISSIONS.can_manage_groups // see groups_controller#context_index
+function renderKabobMenu(accountId, permissions) {
+  const showAvatarItem = permissions.can_manage_admin_users // see accounts_controller#avatars
+  const showGroupsItem = permissions.can_manage_groups // see groups_controller#context_index
   if (showAvatarItem || showGroupsItem) {
     return (
       <Menu
