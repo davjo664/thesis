@@ -34,6 +34,8 @@ import TimeZoneSelect from './components/TimeZoneSelect'
 import { useMutation } from '@apollo/react-hooks';
 import { CREATE_USER, UPDATE_USER } from './graphql/mutations';
 import { USERS_QUERY } from './graphql/queries';
+import UsersSearchContext from './context/userssearch-context';
+
 //
 // Copyright (C) 2012 - present Instructure, Inc.
 //
@@ -137,7 +139,7 @@ const CreateOrUpdateUserModal = props => {
   const [state, setState] = useState(initialState);
   const [createUser, { data: createUserData, error: createUserError }] = useMutation(CREATE_USER,{refetchQueries: USERS_QUERY});
   const [updateUser, { data: updateUserData, error: updateUserError }] = useMutation(UPDATE_USER, {refetchQueries: USERS_QUERY});
-
+  const usersSearchContext = useContext(UsersSearchContext);
   useEffect(() => {
     if (props.createOrUpdate === 'update') {
       // only get the attributes from the user that we are actually going to show in the <input>s
@@ -195,14 +197,16 @@ const CreateOrUpdateUserModal = props => {
     if (method === 'POST') {
       createUser({
         variables: {
-          input: state.data.user
+          input: state.data.user,
+          accountId: usersSearchContext.accountId
         }
       });
     } else {
       updateUser({
         variables: {
           id: props.user.id,
-          input: state.data.user
+          input: state.data.user,
+          accountId: usersSearchContext.accountId
         }
       });
     }

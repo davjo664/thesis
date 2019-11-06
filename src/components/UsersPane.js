@@ -23,13 +23,12 @@ import UsersList from './UsersList'
 import UsersToolbar from './UsersToolbar'
 import SearchMessage from './SearchMessage'
 import { useQuery, useMutation } from '@apollo/react-hooks';
-import { USERS_QUERY } from '../graphql/queries';
 import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
 import Spinner from '@instructure/ui-elements/lib/components/Spinner';
 import View from '@instructure/ui-layout/lib/components/View';
-import { GET_SEARCH_FILTER, GET_ERRORS } from '../graphql/queries'
+import { GET_SEARCH_FILTER, GET_ERRORS, USERS_QUERY } from '../graphql/queries'
 
-export const MIN_SEARCH_LENGTH = 3
+const MIN_SEARCH_LENGTH = 3
 let previousSearchFilter = {search_term: ''};
 
 const UsersPane = props => {
@@ -52,7 +51,7 @@ const UsersPane = props => {
   const { data: errorsData } = useQuery(GET_ERRORS);
   if (!errorsData.errors) {
     previousSearchFilter = { 
-      page: searchFilterData.searchFilter.page ? searchFilterData.searchFilter.page : 1, 
+      page: searchFilterData.searchFilter.page ? parseFloat(searchFilterData.searchFilter.page) : 1, 
       search_term: searchFilterData.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? searchFilterData.searchFilter.search_term : "",
       order: searchFilterData.searchFilter.order,
       sort: searchFilterData.searchFilter.sort,
@@ -88,8 +87,6 @@ const UsersPane = props => {
           noneFoundMessage={'No users found'}
         />
         <SearchMessage
-          users={data.users.users}
-          links={data.users.links}
           dataType="User"
         /></React.Fragment>
       }

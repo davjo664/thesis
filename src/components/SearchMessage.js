@@ -19,20 +19,32 @@
 import React, {useState, useEffect} from 'react'
 import Billboard from '@instructure/ui-billboard/lib/components/Billboard'
 import Pagination, {PaginationButton} from '@instructure/ui-pagination/lib/components/Pagination'
-import {array, func, oneOf, arrayOf, object} from 'prop-types'
+import {array, func, oneOf, arrayOf, object, bool} from 'prop-types'
 import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation, useQuery } from '@apollo/react-hooks';
+import { GET_SEARCH_FILTER, USERS_QUERY } from '../graphql/queries'
+const MIN_SEARCH_LENGTH = 3
 
 const SearchMessage = props => {
   const [state, setState] = useState({});
   const [mutate] = useMutation(UPDATE_SEARCH_FILTER);
+  const { data: searchFilterData } = useQuery(GET_SEARCH_FILTER);
+  const { loading, error, data, refetch } = useQuery(USERS_QUERY, 
+    { variables: { 
+      page: searchFilterData.searchFilter.page ? parseFloat(searchFilterData.searchFilter.page) : 1, 
+      search_term: searchFilterData.searchFilter.search_term.length >= MIN_SEARCH_LENGTH ? searchFilterData.searchFilter.search_term : "",
+      order: searchFilterData.searchFilter.order,
+      sort: searchFilterData.searchFilter.sort,
+      role_filter_id: searchFilterData.searchFilter.role_filter_id
+    }}
+  );
 
   useEffect(()=>{
     mutate({variables:{ filter: {page: state.pageBecomingCurrent} }})
   }, [ state.pageBecomingCurrent ])
   
 
-  if (!props.users || !props.users.length) return <p></p>;
+  if (!data.users.users || !data.users.users.length) return <p></p>;
 
   const defaultProps = {
     getLiveAlertRegion() {
@@ -45,15 +57,15 @@ const SearchMessage = props => {
   }
 
   const isLastPageUnknown = () => {
-    return !props.links.last
+    return !data.users.links.last
   }
 
   const currentPage = () => {
-    return Number(props.links.current)
+    return Number(data.users.links.current)
   }
 
   const lastKnownPageNumber = () => {
-    const link = props.links.last ? props.links.last : props.links.next
+    const link = data.users.links.last ? data.users.links.last : data.users.links.next
     if (!link) return 0
     return Number(link)
   }
@@ -76,7 +88,7 @@ const SearchMessage = props => {
   const {collection} = props
   const errorLoadingMessage = 'There was an error with your query; please try a different search'
 
-  if (props.links) {
+  if (data.users.links) {
     const lastPageNumber = lastKnownPageNumber()
     const lastIndex = lastPageNumber - 1
     const paginationButtons = Array.from(Array(lastPageNumber))
@@ -112,8 +124,6 @@ const SearchMessage = props => {
 }
 
 SearchMessage.propTypes = {
-  users: arrayOf(object).isRequired,
-  getLiveAlertRegion: func,
   dataType: oneOf(['Course', 'User']).isRequired
 }
 

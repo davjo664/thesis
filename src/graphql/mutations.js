@@ -14,8 +14,8 @@ gql` input UserInput {
 `;
 
 export const CREATE_USER = gql`
-    mutation CreateUser($input: UserInput!) {
-        createUser(input: $input) {
+    mutation CreateUser($input: UserInput!, $accountId: String!) {
+        createUser(input: $input, accountId: $accountId) {
           id,
           name
         }
@@ -23,8 +23,8 @@ export const CREATE_USER = gql`
 `;
 
 export const UPDATE_USER = gql`
-    mutation UpdateUser($id: Int!, $input: UserInput!) {
-      updateUser(id: $id, input: $input)
+    mutation UpdateUser($id: Int!, $input: UserInput!, $accountId: String!) {
+      updateUser(id: $id, input: $input, accountId: $accountId)
         {
           id,
           name

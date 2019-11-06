@@ -66,7 +66,6 @@ const UsersListRow = ({user}) => {
         {usersSearchContext.permissions.can_edit_users && (
           <CreateOrUpdateUserModal
             createOrUpdate="update"
-            url={`https://larande.test.instructure.com/accounts/${usersSearchContext.accountId}/users/${user.id}`}
             user={user}
           >
             <span>

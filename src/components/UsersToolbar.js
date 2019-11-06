@@ -92,10 +92,9 @@ const UsersToolbar = (props) => {
         />
 
         <GridCol width="auto">
-          {window.ENV.PERMISSIONS.can_create_users && (
+          {usersSearchContext.permissions.can_create_users && (
             <CreateOrUpdateUserModal
               createOrUpdate="create"
-              url={`/accounts/${usersSearchContext.accountId}/users`}
             >
               <Button aria-label={'Add people'}>
                 <IconPlusLine />
@@ -103,7 +102,7 @@ const UsersToolbar = (props) => {
               </Button>
             </CreateOrUpdateUserModal>
           )}{' '}
-          {renderKabobMenu(usersSearchContext.accountId)}
+          {renderKabobMenu(usersSearchContext.accountId, usersSearchContext.permissions)}
         </GridCol>
       </FormFieldGroup>
     </form>
@@ -111,9 +110,9 @@ const UsersToolbar = (props) => {
 }
 export default UsersToolbar;
 
-const renderKabobMenu = (accountId) => {
-  const showAvatarItem = window.ENV.PERMISSIONS.can_manage_admin_users // see accounts_controller#avatars
-  const showGroupsItem = window.ENV.PERMISSIONS.can_manage_groups // see groups_controller#context_index
+const renderKabobMenu = (accountId, permissions) => {
+  const showAvatarItem = permissions.can_manage_admin_users // see accounts_controller#avatars
+  const showGroupsItem = permissions.can_manage_groups // see groups_controller#context_index
   if (showAvatarItem || showGroupsItem) {
     return (
       <Menu
