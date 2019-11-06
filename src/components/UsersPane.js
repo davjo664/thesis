@@ -65,7 +65,9 @@ class UsersPane extends React.Component {
 
         {!_.isEmpty(this.props.users) &&
           !this.props.isLoading && (
-            <UsersList />
+            <UsersList 
+              users={this.props.users}
+            />
           )}
         <SearchMessage
           noneFoundMessage={'No users found'}

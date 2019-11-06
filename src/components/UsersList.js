@@ -91,9 +91,5 @@ class UsersList extends React.Component {
   }
 }
 
-const mapStateToProps = state => ({
-  users: state.userList.users
-});
-
-export default connect(mapStateToProps)(UsersList)
+export default UsersList
 
