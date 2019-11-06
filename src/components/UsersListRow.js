@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useContext } from 'react'
+import React from 'react'
 import Button from '@instructure/ui-buttons/lib/components/Button'
 import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMasqueradeLine from '@instructure/ui-icons/lib/Line/IconMasquerade'
@@ -24,16 +24,17 @@ import IconMessageLine from '@instructure/ui-icons/lib/Line/IconMessage'
 import IconEditLine from '@instructure/ui-icons/lib/Line/IconEdit'
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
 import UserLink from './UserLink'
-import UsersSearchContext from '../context/userssearch-context'
+import { GET_ACCOUNT_ID, GET_PERMISSIONS } from '../graphql/queries'
+import { useQuery } from '@apollo/react-hooks';
 
 const UsersListRow = ({user}) => {
-  const usersSearchContext = useContext(UsersSearchContext);
-
+  const { data: accountIdData } = useQuery(GET_ACCOUNT_ID);
+  const { data: permissionsData } = useQuery(GET_PERMISSIONS);
   return (
     <tr>
       <th scope="row">
         <UserLink
-          href={`/accounts/${usersSearchContext.accountId}/users/${user.id}`}
+          href={`/accounts/${accountIdData.accountId}/users/${user.id}`}
           name={user.sortable_name}
           avatar_url={user.avatar_url}
           size="x-small"
@@ -45,14 +46,14 @@ const UsersListRow = ({user}) => {
         {user.last_login ? user.last_login.slice(0, 10) : ""}
       </td>
       <td style={{whiteSpace: 'nowrap'}}>
-        {usersSearchContext.permissions.can_masquerade && (
+        {permissionsData.permissions.can_masquerade && (
           <Tooltip tip={`Act as ${user.name}`}>
             <Button variant="icon" size="small" href={`https://larande.test.instructure.com/users/${user.id}/masquerade`}>
               <IconMasqueradeLine title={`Act as ${user.name}`} />
             </Button>
           </Tooltip>
         )}
-        {usersSearchContext.permissions.can_message_users && (
+        {permissionsData.permissions.can_message_users && (
           <Tooltip tip={`Send message to ${user.name}`}>
             <Button
               variant="icon"
@@ -63,7 +64,7 @@ const UsersListRow = ({user}) => {
             </Button>
           </Tooltip>
         )}
-        {usersSearchContext.permissions.can_edit_users && (
+        {permissionsData.permissions.can_edit_users && (
           <CreateOrUpdateUserModal
             createOrUpdate="update"
             user={user}

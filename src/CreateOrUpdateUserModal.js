@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
 import {bool, func, shape, string, element, oneOf} from 'prop-types'
 import Avatar from '@instructure/ui-elements/lib/components/Avatar'
 import Button from '@instructure/ui-buttons/lib/components/Button'
@@ -31,10 +31,9 @@ import {firstNameFirst, lastNameFirst, nameParts} from './user_utils'
 import InstuiModal, {ModalBody, ModalFooter} from './InstuiModal'
 import TimeZoneSelect from './components/TimeZoneSelect'
 
-import { useMutation } from '@apollo/react-hooks';
+import { useMutation, useQuery } from '@apollo/react-hooks';
 import { CREATE_USER, UPDATE_USER } from './graphql/mutations';
-import { USERS_QUERY } from './graphql/queries';
-import UsersSearchContext from './context/userssearch-context';
+import { USERS_QUERY, GET_ACCOUNT_ID } from './graphql/queries';
 
 //
 // Copyright (C) 2012 - present Instructure, Inc.
@@ -139,7 +138,7 @@ const CreateOrUpdateUserModal = props => {
   const [state, setState] = useState(initialState);
   const [createUser, { data: createUserData, error: createUserError }] = useMutation(CREATE_USER,{refetchQueries: USERS_QUERY});
   const [updateUser, { data: updateUserData, error: updateUserError }] = useMutation(UPDATE_USER, {refetchQueries: USERS_QUERY});
-  const usersSearchContext = useContext(UsersSearchContext);
+  const { data: accountIdData } = useQuery(GET_ACCOUNT_ID);
   useEffect(() => {
     if (props.createOrUpdate === 'update') {
       // only get the attributes from the user that we are actually going to show in the <input>s
@@ -198,7 +197,7 @@ const CreateOrUpdateUserModal = props => {
       createUser({
         variables: {
           input: state.data.user,
-          accountId: usersSearchContext.accountId
+          accountId: accountIdData.accountId
         }
       });
     } else {
@@ -206,7 +205,7 @@ const CreateOrUpdateUserModal = props => {
         variables: {
           id: props.user.id,
           input: state.data.user,
-          accountId: usersSearchContext.accountId
+          accountId: accountIdData.accountId
         }
       });
     }

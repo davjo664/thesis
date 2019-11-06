@@ -18,9 +18,25 @@ const typeDefs = gql`
     name: String
   }
 
+  type Permissions {
+    can_masquerade: Boolean,
+    can_message_users: Boolean,
+    can_edit_users: Boolean,
+    can_create_users: Boolean
+  }
+
+  type Role {
+    id: Number,
+    label: String
+  }
+
   type Query {
-    getErrors: Errors
-    searchFilter: String
+    getErrors: Errors,
+    searchFilter: String,
+    permissions: Permissions,
+    rootAccountId: String,
+    accountId: String,
+    roles: [Role]
   }
 
   type Mutation {

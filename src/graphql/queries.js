@@ -21,6 +21,7 @@ export const USERS_QUERY = gql`
       }
     }
 `;
+
 export const GET_ERRORS = gql`
   query getErrors {
     errors @client
@@ -35,6 +36,38 @@ export const GET_SEARCH_FILTER = gql`
       sort,
       order,
       page
+    }
+  }
+`;
+
+export const GET_PERMISSIONS = gql`
+  query getPermissions {
+    permissions @client {
+      can_masquerade,
+      can_message_users,
+      can_edit_users,
+      can_create_users
+    }
+  }
+`;
+
+export const GET_ROOT_ACCOUNT_ID = gql`
+  query getRootAccountId {
+    rootAccountId @client
+  }
+`;
+
+export const GET_ACCOUNT_ID = gql`
+  query getAccountId {
+    accountId @client
+  }
+`;
+
+export const GET_ROLES = gql`
+  query getRoles {
+    roles @client {
+      id
+      label
     }
   }
 `;

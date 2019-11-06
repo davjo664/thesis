@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useContext } from 'react'
+import React from 'react'
 import {string, func, shape} from 'prop-types'
 import IconGroupLine from '@instructure/ui-icons/lib/Line/IconGroup'
 import IconMoreLine from '@instructure/ui-icons/lib/Line/IconMore'
@@ -33,8 +33,7 @@ import Select from '@instructure/ui-core/lib/components/Select'
 import TextInput from '@instructure/ui-forms/lib/components/TextInput'
 
 import CreateOrUpdateUserModal from '../CreateOrUpdateUserModal'
-import UsersSearchContext from '../context/userssearch-context'
-import { GET_ERRORS, GET_SEARCH_FILTER } from '../graphql/queries'
+import { GET_ERRORS, GET_SEARCH_FILTER, GET_ROLES, GET_PERMISSIONS, GET_ACCOUNT_ID } from '../graphql/queries'
 import { UPDATE_SEARCH_FILTER } from '../graphql/mutations'
 import { useMutation, useQuery } from '@apollo/react-hooks';
 
@@ -46,12 +45,14 @@ function preventDefault (fn) {
 }
 
 const UsersToolbar = (props) => {
-  const usersSearchContext = useContext(UsersSearchContext);
-  
+
   const placeholder = 'Search people...'
   const [mutate] = useMutation(UPDATE_SEARCH_FILTER, {variables:{ filter: {} }});
   const { data } = useQuery(GET_SEARCH_FILTER);
   const { data: errorsData } = useQuery(GET_ERRORS);
+  const { data: rolesData } = useQuery(GET_ROLES);
+  const { data: permissionsData } = useQuery(GET_PERMISSIONS);
+  const { data: accountIdData } = useQuery(GET_ACCOUNT_ID);
 
   return (
     <form onSubmit={preventDefault(mutate)}>
@@ -65,7 +66,7 @@ const UsersToolbar = (props) => {
             <option key="all" value="">
               {'All Roles'}
             </option>
-            {usersSearchContext.roles.map(role => (
+            {rolesData.roles.map(role => (
               <option key={role.id} value={role.id}>
                 {role.label}
               </option>
@@ -92,7 +93,7 @@ const UsersToolbar = (props) => {
         />
 
         <GridCol width="auto">
-          {usersSearchContext.permissions.can_create_users && (
+          {permissionsData.permissions.can_create_users && (
             <CreateOrUpdateUserModal
               createOrUpdate="create"
             >
@@ -102,7 +103,7 @@ const UsersToolbar = (props) => {
               </Button>
             </CreateOrUpdateUserModal>
           )}{' '}
-          {renderKabobMenu(usersSearchContext.accountId, usersSearchContext.permissions)}
+          {renderKabobMenu(accountIdData.accountId, permissionsData.permissions)}
         </GridCol>
       </FormFieldGroup>
     </form>

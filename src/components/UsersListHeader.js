@@ -16,7 +16,7 @@
  * with this program. If not, see <http://www.gnu.org/licenses/>.
  */
 
-import React, { useContext } from 'react'
+import React from 'react'
 import {string, shape} from 'prop-types'
 import Tooltip from '@instructure/ui-overlays/lib/components/Tooltip'
 import IconMiniArrowUp from '@instructure/ui-icons/lib/Solid/IconMiniArrowUp'
